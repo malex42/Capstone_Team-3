@@ -1,0 +1,10 @@
+# Bytecode files
+__pycache__/
+*.pyc
+
+# PyCharm settings
+.idea/
+*/.idea/
+
+# Virtual environment
+venv/
