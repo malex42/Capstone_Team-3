@@ -88,21 +88,25 @@ class AccountHandler:
 
         return False
 
-    # def validate_login(self, input_username: str, input_password: str) -> bool:
-    #     """ Validate user login by checking the username and password. """
-    #     # Validate input
-    #     if ValidationHandler.validate_user_input(input_username) and ValidationHandler.validate_user_input(
-    #             input_password):
-    #         user = self.find_user_by_name(input_username)
-    #
-    #         if user is not None:
-    #             stored_pass = user["password"]
-    #
-    #             if self.pw_handler.verify_password_match(password=input_password, hashed_password=stored_pass):
-    #                 return True
-    #
-    #     return False
-    #
+    def validate_login(self, input_username: str, input_password: str) -> bool:
+        """ Validate user login by checking the username and password. """
+        # Validate input
+        if ValidationHandler.validate_user_input(input_username) and ValidationHandler.validate_user_input(
+                input_password):
+            user = self.find_user_by_name(input_username)
+
+            if user is not None:
+                stored_pass = user["password"]
+
+                if self.pw_handler.verify_password_match(password=input_password, hashed_password=stored_pass):
+                    return True
+
+        return False
+
+    def find_user_by_name(self, username: str) -> dict:
+        """ Retrieve a user document by their username """
+        return self.users_collection.find_one({"username": username})
+
     # def delete_user(self, input_username: str, input_password: str) -> bool:
     #     """ Delete a user's account after validating their login credentials. """
     #     if self.validate_login(input_username, input_password):
