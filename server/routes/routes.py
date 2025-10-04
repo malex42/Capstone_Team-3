@@ -3,7 +3,7 @@ from flask import g
 from handlers.account_handler import AccountHandler
 from routes.account_management import create_user_endpoint
 
-from server.routes.account_management import login_endpoint
+from routes.account_management import login_endpoint
 
 
 def setup_routes(app, account_handler: AccountHandler):

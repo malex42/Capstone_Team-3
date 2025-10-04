@@ -60,6 +60,18 @@ class AccountHandler:
         user_dict.update(additional_fields)
         self.users_collection.insert_one(user_dict)
 
+    def _get_users_role(self, user: dict):
+        """ Helper method to return the role of the user """
+        return user['role']
+
+    def get_user_role(self, input_username: str) -> str:
+        user = self.find_user_by_name(input_username)
+        return self._get_users_role(user)
+
+    def find_user_by_name(self, username: str) -> dict:
+        """ Retrieve a user document by their username """
+        return self.users_collection.find_one({"username": username})
+
     def create_user(self, input_username: str, input_password: str, role: str, code: str | None) -> bool:
         """ Create a new user by validating input, hashing the password, and inserting into the DB """
 
@@ -103,9 +115,7 @@ class AccountHandler:
 
         return False
 
-    def find_user_by_name(self, username: str) -> dict:
-        """ Retrieve a user document by their username """
-        return self.users_collection.find_one({"username": username})
+
 
     # def delete_user(self, input_username: str, input_password: str) -> bool:
     #     """ Delete a user's account after validating their login credentials. """
