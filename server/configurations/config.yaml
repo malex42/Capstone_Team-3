@@ -1,4 +1,4 @@
 SERVER_HOST: '0.0.0.0'
 SERVER_PORT: 3333
 MONGO_URI: 'mongodb+srv://Backend:Capstone-T3%2BBackend%21@capstone-t3.jrohtpj.mongodb.net/?retryWrites=true&w=majority&appName=Capstone-T3'
-JWT_SECRET_KEY: 'devious-secret-key'
+JWT_SECRET_KEY: 'minions'
