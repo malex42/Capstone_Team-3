@@ -35,3 +35,22 @@ def create_user_endpoint():
 
     # Default error response if something else goes wrong
     return jsonify({"message": "Failure. Unknown Error"}), 400
+
+
+
+def login_endpoint():
+    """ Endpoint to login a user """
+    data = request.get_json()
+
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({"message": "Username, password, and role are required"}), 400
+
+    username = data['username']
+    password = data['password']
+
+    if g.account_handler.validate_login(username, password):
+        role = g.account_handler.get_user_role(username)
+        access_token = create_access_token(identity=username, additional_claims={"role": role})
+        return jsonify({"JWT": access_token, "message": "Success", "username": username}), 200
+
+    return jsonify({"message": "Failure. Unknown Error"}), 400
