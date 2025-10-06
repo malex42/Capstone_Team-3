@@ -1,0 +1,27 @@
+body{
+    background-color: #d95615;
+    color: white;
+}
+header h1{
+    text-align: center;
+    font-size: 4em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+form{
+    justify-content: center;
+    margin: auto;
+    color: black;
+    padding: 2em;
+    margin-bottom: 2em;
+    max-width: 300px;
+}
+.btn{
+    margin-top: 1em;
+}
+img{
+    max-width: 500px;
+    max-height: 500px;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
