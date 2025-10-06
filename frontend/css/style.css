@@ -14,7 +14,8 @@ form{
     color: black;
     padding: 2em;
     margin-bottom: 2em;
-    max-width: 300px;
+    max-width: 500px;
+    max-height: 500px;
 }
 .btn{
     margin-top: 1em;
@@ -24,4 +25,9 @@ img{
     max-height: 500px;
     margin-top: 1em;
     margin-bottom: 1em;
+}
+
+.error-text {
+  color: #f7f6f6; /* pick any hex, rgb, or css color */
+  font-weight: 600;
 }
