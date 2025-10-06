@@ -3,6 +3,8 @@ from flask import g
 from handlers.account_handler import AccountHandler
 from routes.account_management import create_user_endpoint
 
+from routes.account_management import login_endpoint
+
 
 def setup_routes(app, account_handler: AccountHandler):
     """ Setup routes and bind to the app """
@@ -14,6 +16,7 @@ def setup_routes(app, account_handler: AccountHandler):
         g.account_handler = account_handler
 
     app.add_url_rule('/auth/register', view_func=create_user_endpoint, methods=['POST'])
+    app.add_url_rule('/auth/login', view_func=login_endpoint, methods=['POST'])
 
 
 
