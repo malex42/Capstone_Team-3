@@ -1,5 +1,5 @@
 from flask import request, jsonify, g
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from handlers.exceptions.exceptions import PasswordFormatError, UserAlreadyExistsError
 from handlers.enums.roles import Role
 from handlers.role_handler import RoleValidationHandler
@@ -29,13 +29,25 @@ def create_user_endpoint():
         # Attempt to create the user and return success message
         if g.account_handler.create_user(username, password, role, code):
             access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
-            return jsonify({"JWT": access_token, "message": "Success", "username": username}), 200
+            refresh_token = create_refresh_token(identity=username)
+
+            # Decode token to read expiration
+            decoded = pyjwt.decode(access_token, options={"verify_signature": False})
+            exp_timestamp = decoded.get('exp')
+            exp_time = datetime.fromtimestamp(exp_timestamp) if exp_timestamp else None
+
+            return jsonify({
+                "JWT": access_token,
+                "refresh_token": refresh_token,
+                "message": "User created",
+                "username": username,
+                "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
+            }), 200
+
 
     except (PasswordFormatError, UserAlreadyExistsError) as e:
-        # Catch known errors
         return jsonify({"message": e.message}), 400
 
-    # Default error response if something else goes wrong
     return jsonify({"message": "Failure. Unknown Error"}), 400
 
 
@@ -56,17 +68,18 @@ def login_endpoint():
 
         # Create JWT token
         access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
+        refresh_token = create_refresh_token(identity=username)
 
         # Decode token to read expiration
         decoded = pyjwt.decode(access_token, options={"verify_signature": False})
-        exp_timestamp = decoded.get('exp')
-        exp_time = datetime.fromtimestamp(exp_timestamp) if exp_timestamp else None
+        exp_time = datetime.fromtimestamp(decoded.get('exp'))
 
         return jsonify({
             "JWT": access_token,
             "message": "Success",
+            "refresh_token": refresh_token,
             "username": username,
-            "expires at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
+            "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
         }), 200
 
     return jsonify({"message": "Invalid username or password"}), 401
@@ -77,11 +90,29 @@ def login_endpoint():
 def expired_endpoint():
     """ Example of an expired endpoint that requires a valid JWT """
 
-    current_user = get_jwt_identity()
+    username = get_jwt_identity()
     claims = get_jwt()
 
     return jsonify({
-        "message": f"Hello {current_user}",
+        "message": f"Hello {username}",
         "role": claims.get('role'),
         "code": claims.get('code')
+    }), 200
+
+@jwt_required(refresh=True)
+def refresh_token_endpoint():
+    username = get_jwt_identity()
+    user = g.account_handler.find_user_by_name(username)
+    role = user['role']
+    code = user.get('business_code', None)
+
+    new_access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
+
+    decoded = pyjwt.decode(new_access_token, options={"verify_signature": False})
+    exp_time = datetime.fromtimestamp(decoded.get('exp'))
+
+    return jsonify({
+        "access_token": new_access_token,
+        "message": "Access token refreshed",
+        "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S")
     }), 200

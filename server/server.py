@@ -24,7 +24,8 @@ class Server:
 
         # Assign config variables
         self.app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
-        self.app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
+        self.app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+        self.app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=14)
         self.host = config.SERVER_HOST
         self.port = config.SERVER_PORT
 
@@ -35,21 +36,21 @@ class Server:
         def expired_token_callback(jwt_header, jwt_payload):  # noqa: ARG001
             return jsonify({
                 "message": "Token has expired",
-                "error": "token_expired"
+                "error": "token expired"
             }), 401
 
         @jwt.invalid_token_loader
         def invalid_token_callback(error):  # noqa: ARG001
             return jsonify({
                 "message": "Invalid token",
-                "error": "invalid_token"
+                "error": "invalid token"
             }), 401
 
         @jwt.unauthorized_loader
         def missing_token_callback(error):  # noqa: ARG001
             return jsonify({
                 "message": "Authorization token is missing",
-                "error": "authorization_required"
+                "error": "authorization is needed"
             }), 401
 
         # Set up all the API routes with the account handlers
