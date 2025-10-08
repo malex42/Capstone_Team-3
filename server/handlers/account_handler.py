@@ -49,7 +49,7 @@ class AccountHandler:
             "password": hashed_password,
             "role": role,
             "business_code": code if code is not None else '',
-            "created_token": datetime.now()
+            "created_at": datetime.now()
      }
         additional_fields = {}
 

@@ -24,7 +24,7 @@ class Server:
 
         # Assign config variables
         self.app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
-        self.app.config['JWT_TOKEN_EXPIRATION'] = timedelta(seconds=30)
+        self.app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
         self.host = config.SERVER_HOST
         self.port = config.SERVER_PORT
 
