@@ -56,29 +56,10 @@ def login_endpoint():
     return jsonify({"message": "Failure. Unknown Error"}), 400
 
 
-def refresh_token_endpoint():
-    """ Endpoint to refresh an expired access token using a refresh token """
 
 
-    current_user = get_jwt_identity()
-
-
-    claims = get_jwt_identity()
-    role = claims.get('role', '')
-    code = claims.get('code', '')
-
-
-    new_access_token = create_access_token(identity=current_user, additional_claims={"role": role, "code": code})
-
-    return jsonify({
-        "access_token": new_access_token,
-        "message": "Token refreshed successfully"
-    }), 200
-
-
-
-def protected_endpoint_example():
-    """ Example of a protected endpoint that requires a valid JWT """
+def expired_endpoint():
+    """ Example of an expired endpoint that requires a valid JWT """
 
     current_user = get_jwt_identity()
     claims = get_jwt()

@@ -65,7 +65,7 @@ class AccountHandler:
         user_dict.update(additional_fields)
         self.users_collection.insert_one(user_dict)
 
-    @staticmethod
+
     def _get_users_role(self, user: dict):
         """ Helper method to return the role of the user """
         return user['role']

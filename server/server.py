@@ -24,17 +24,32 @@ class Server:
 
         # Assign config variables
         self.app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
-        self.app.config['JWT_TOKEN_EXPIRATION'] = timedelta(days=1)
+        self.app.config['JWT_TOKEN_EXPIRATION'] = timedelta(seconds=30)
         self.host = config.SERVER_HOST
         self.port = config.SERVER_PORT
 
         # Initialize the JWTManager with the Flask app for token management
         jwt = JWTManager(self.app)
 
-        def expired_token_callback(header, payload):
+        @jwt.expired_token_loader
+        def expired_token_callback(jwt_header, jwt_payload):  # noqa: ARG001
             return jsonify({
                 "message": "Token has expired",
-                "error": "token expired"
+                "error": "token_expired"
+            }), 401
+
+        @jwt.invalid_token_loader
+        def invalid_token_callback(error):  # noqa: ARG001
+            return jsonify({
+                "message": "Invalid token",
+                "error": "invalid_token"
+            }), 401
+
+        @jwt.unauthorized_loader
+        def missing_token_callback(error):  # noqa: ARG001
+            return jsonify({
+                "message": "Authorization token is missing",
+                "error": "authorization_required"
             }), 401
 
         # Set up all the API routes with the account handlers
