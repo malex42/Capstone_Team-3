@@ -4,6 +4,7 @@ from flask_cors import CORS
 
 from configurations.config_manager import ConfigurationManager
 from handlers.account_handler import AccountHandler
+from handlers.business_handler import BusinessHandler
 from handlers.db_handler import DatabaseHandler
 from handlers.password_handler import PasswordHandler
 from routes.routes import setup_routes
@@ -15,6 +16,7 @@ class Server:
         self.db_handler = DatabaseHandler(config.MONGO_URI)
         self.pw_handler = PasswordHandler()
         self.acct_handler = AccountHandler(db_handler=self.db_handler, pw_handler=self.pw_handler)
+        self.business_handler = BusinessHandler(db_handler=self.db_handler)
 
         self.app = Flask(__name__)
 
@@ -30,7 +32,7 @@ class Server:
         JWTManager(self.app)
 
         # Set up all the API routes with the account handlers
-        setup_routes(self.app, self.acct_handler)
+        setup_routes(self.app, self.acct_handler, self.business_handler)
 
     def run(self, debug: bool = False):
         # Start the Flask server with the specified host and port

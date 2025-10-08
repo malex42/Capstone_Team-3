@@ -26,8 +26,9 @@ def create_user_endpoint():
     try:
         # Attempt to create the user and return success message
         if g.account_handler.create_user(username, password, role, code):
-            access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
-            return jsonify({"JWT": access_token, "message": "Success", "username": username}), 200
+            user_id = g.account_handler.find_user_by_name(username)['_id']
+            access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": user_id})
+            return jsonify({"JWT": str(access_token), "message": "Success", "username": username}), 200
 
     except (PasswordFormatError, UserAlreadyExistsError) as e:
         # Catch known errors
