@@ -1,4 +1,5 @@
-from flask import Flask
+from datetime import timedelta
+from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
@@ -23,11 +24,18 @@ class Server:
 
         # Assign config variables
         self.app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
+        self.app.config['JWT_TOKEN_EXPIRATION'] = timedelta(days=1)
         self.host = config.SERVER_HOST
         self.port = config.SERVER_PORT
 
         # Initialize the JWTManager with the Flask app for token management
-        JWTManager(self.app)
+        jwt = JWTManager(self.app)
+
+        def expired_token_callback(header, payload):
+            return jsonify({
+                "message": "Token has expired",
+                "error": "token expired"
+            }), 401
 
         # Set up all the API routes with the account handlers
         setup_routes(self.app, self.acct_handler)

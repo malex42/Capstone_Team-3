@@ -1,7 +1,10 @@
+import jwt
+from datetime import datetime, timedelta
 from itertools import chain
 # from unittest.mock import inplace
 
 import pymongo
+
 from bson import ObjectId
 from pymongo import errors
 from handlers.enums.roles import Role
@@ -37,6 +40,7 @@ class AccountHandler:
         # Ensure field 'business_code' exists
         self.users_collection.create_index([("business_code", 1)], unique=False)
 
+
     def _insert_user(self, input_username: str, hashed_password: str, role: str, code: str | None):
         """ Helper method to insert user into the database """
 
@@ -44,8 +48,9 @@ class AccountHandler:
             "username": input_username,
             "password": hashed_password,
             "role": role,
-            "business_code": code if code is not None else ''
-        }
+            "business_code": code if code is not None else '',
+            "created_token": datetime.now()
+     }
         additional_fields = {}
 
         match role:
@@ -60,6 +65,7 @@ class AccountHandler:
         user_dict.update(additional_fields)
         self.users_collection.insert_one(user_dict)
 
+    @staticmethod
     def _get_users_role(self, user: dict):
         """ Helper method to return the role of the user """
         return user['role']
