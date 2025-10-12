@@ -42,14 +42,14 @@ export function clearToken() {
 // API calls
 export function createUser({ username, password, role, code }) {
   // This hits Flask's create_user_endpoint()
-  return request('/api/create_user', {
+  return request('/api/auth/register', {
     method: 'POST',
     body: { username, password, role, ...(code ? { code } : {}) },
   });
 }
 
 export function login({ username, password }) {
-  return request('/api/login', {
+  return request('/api/auth/login', {
     method: 'POST',
     body: { username, password },
   });

@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '/css/style.css'
-import { postJSON } from './lib/api'
+import { login, saveToken } from '@/lib/api'
 
 export default function Login() {
-  const [role, setRole] = useState('manager')
+  // const [role, setRole] = useState('manager')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,16 +14,17 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
-      const { ok, data } = await postJSON('/api/login', { role, username, password })
-      if (!ok) throw new Error((data && data.message) || 'Login failed')
-      const token = data.access_token || data.token
-      if (token) localStorage.setItem('token', token)
-
-      window.location.href = '/'
+      const payload = { username, password }
+      const res = await login(payload)
+      if (res?.JWT) {
+        saveToken(res.JWT)
+        window.location.href = '/'
+      } else {
+        setError('Login failed: Invalid response')
+      }
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Login failed')
     } finally {
       setLoading(false)
     }
@@ -38,6 +39,7 @@ export default function Login() {
       </div>
 
       <form className="mt-4" onSubmit={handleSubmit}>
+        {/*
         <div className="row mb-3 align-items-center">
           <label htmlFor="role" className="col-sm-3 col-form-label text-sm-end">Role:</label>
           <div className="col-sm-9">
@@ -53,6 +55,7 @@ export default function Login() {
             </select>
           </div>
         </div>
+        */}
 
         <div className="row mb-3 align-items-center">
           <label htmlFor="username" className="col-sm-3 col-form-label text-sm-end">Username:</label>
