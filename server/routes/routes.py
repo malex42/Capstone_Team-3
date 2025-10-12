@@ -15,8 +15,8 @@ def setup_routes(app, account_handler: AccountHandler):
         # Attach account_handler to the global 'g' object for easy access in routes
         g.account_handler = account_handler
 
-    app.add_url_rule('/auth/register', view_func=create_user_endpoint, methods=['POST'])
-    app.add_url_rule('/auth/login', view_func=login_endpoint, methods=['POST'])
+    app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
+    app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
 
 
 
