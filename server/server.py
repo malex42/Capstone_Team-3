@@ -71,4 +71,5 @@ class Server:
 
     def run(self, debug: bool = False):
         # Start the Flask server with the specified host and port
-        self.app.run(host=self.host, port=self.port, debug=debug)
+        context = ('ssl/cert.pem', 'ssl/key.pem')  # certificate and key files
+        self.app.run(host=self.host, port=self.port, debug=debug, ssl_context=context)
