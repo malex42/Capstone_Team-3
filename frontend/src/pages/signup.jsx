@@ -31,6 +31,14 @@ export default function Signup() {
 
   return (
     <div className="auth-bg d-flex min-vh-100">
+      {/* Background clocks */}
+      <div className="clock clock--green" />
+      <div className="clock clock--purple" />
+      <div className="clock clock--orange" />
+      <div className="clock clock--green"><i /></div>
+      <div className="clock clock--purple"><i /></div>
+      <div className="clock clock--orange"><i /></div>
+
       <div className="container my-auto">
         <div className="row justify-content-center">
           <div className="col-12 d-flex justify-content-center">
@@ -49,10 +57,10 @@ export default function Signup() {
                      alt="" width="18" height="18" className="me-2" />
                 Continue with Google
               </button> */}
-
+              {/* 
               <div className="auth-divider my-3">
                 <span>or</span>
-              </div>
+              </div> */}
 
               <form onSubmit={handleSubmit} noValidate>
                 {/* Username (your backend expects "username") */}
