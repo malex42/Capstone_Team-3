@@ -1,0 +1,90 @@
+/* Page background + playful blobs similar to the screenshot */
+.auth-bg {
+  position: relative;
+  background: #fff;
+  overflow: hidden;
+}
+.auth-bg::before,
+.auth-bg::after {
+     pointer-events: none;          /* ✅ don't intercept clicks */
+  z-index: 0;   
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(2px);
+  opacity: 0.25;
+}
+.auth-bg::before {
+  width: 32rem; height: 32rem;
+  left: -10rem; bottom: -12rem;
+  background: #8b5cf6; /* purple */
+  box-shadow: 120px -60px 0 0 #f97316; /* orange accent */
+}
+.auth-bg::after {
+  width: 28rem; height: 28rem;
+  right: -8rem; top: -6rem;
+  background: #34d399; /* green */
+}
+
+.auth-card {
+      position: relative;
+  z-index: 1;                    /* ✅ ensure the form is on top */
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.06);
+  margin: 0 auto;
+  width: 100%;
+  max-width: 420px;  /* ✅ make it wider but keep nice proportions */
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 20px;
+    max-width: 90%; /* allow breathing room on mobile */
+  }
+}
+
+/* Google button */
+.btn-google {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.12);
+  color: #3c4043;
+  font-weight: 500;
+}
+.btn-google:hover { background: #f7f7f7; }
+
+/* Divider with “or” */
+.auth-divider {
+  position: relative;
+  text-align: center;
+}
+.auth-divider::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 1px solid rgba(0,0,0,.1);
+  transform: translateY(-50%);
+}
+.auth-divider > span {
+  background: #fff;
+  padding: 0 .75rem;
+  position: relative;
+  z-index: 1;
+  color: #6c757d;
+  font-size: .9rem;
+}
+
+/* CTA color like screenshot (orange) */
+.auth-cta {
+  background-color: #f2672e;
+  border-color: #f2672e;
+}
+.auth-cta:hover {
+  background-color: #e3561b;
+  border-color: #e3561b;
+}
+
+/* Optional tiny logo */
+.small-logo { width: 120px; }
