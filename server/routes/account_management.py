@@ -1,5 +1,6 @@
 from flask import request, jsonify, g
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, \
+    set_access_cookies
 from handlers.exceptions.exceptions import PasswordFormatError, UserAlreadyExistsError
 from handlers.enums.roles import Role
 from handlers.role_handler import RoleValidationHandler
@@ -29,7 +30,7 @@ def create_user_endpoint():
         # Attempt to create the user and return success message
         if g.account_handler.create_user(username, password, role, code):
             access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
-            refresh_token = create_refresh_token(identity=username)
+            set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
 
             # Decode token to read expiration
             decoded = pyjwt.decode(access_token, options={"verify_signature": False})
@@ -38,7 +39,6 @@ def create_user_endpoint():
 
             return jsonify({
                 "JWT": access_token,
-                "refresh_token": refresh_token,
                 "message": "User created",
                 "username": username,
                 "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
@@ -68,7 +68,7 @@ def login_endpoint():
 
         # Create JWT token
         access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
-        refresh_token = create_refresh_token(identity=username)
+        set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
 
         # Decode token to read expiration
         decoded = pyjwt.decode(access_token, options={"verify_signature": False})
@@ -77,7 +77,6 @@ def login_endpoint():
         return jsonify({
             "JWT": access_token,
             "message": "Success",
-            "refresh_token": refresh_token,
             "username": username,
             "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
         }), 200

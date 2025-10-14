@@ -1,6 +1,6 @@
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from flask import Flask, jsonify
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, get_jwt, create_access_token, get_jwt_identity, set_access_cookies
 from flask_cors import CORS
 
 from configurations.config_manager import ConfigurationManager
@@ -25,7 +25,6 @@ class Server:
         # Assign config variables
         self.app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
         self.app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=15)
-        self.app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=14)
         self.host = config.SERVER_HOST
         self.port = config.SERVER_PORT
 
@@ -38,6 +37,20 @@ class Server:
                 "message": "Token has expired",
                 "error": "token expired"
             }), 401
+
+        @self.app.after_request
+        def refresh_expiring_jwts(response):
+            try:
+                exp_timestamp = get_jwt()["exp"]
+                now = datetime.now(timezone.utc)
+                target_timestamp = datetime.timestamp(now + timedelta(minutes=5))
+                if target_timestamp > exp_timestamp:
+                    access_token = create_access_token(identity=get_jwt_identity())
+                    set_access_cookies(response, access_token)
+                return response
+            except (RuntimeError, KeyError):
+                # Case where there is not a valid JWT. Just return the original response
+                return response
 
         @jwt.invalid_token_loader
         def invalid_token_callback(error):  # noqa: ARG001

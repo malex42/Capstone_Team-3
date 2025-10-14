@@ -17,8 +17,6 @@ def setup_routes(app, account_handler: AccountHandler):
 
     app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
     app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
-    app.add_url_rule('/api/auth/refresh', view_func=refresh_token_endpoint, methods=['POST'])
-
 
 
 '''FOR LATER REFERENCE - IGNORE'''
