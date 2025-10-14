@@ -43,12 +43,12 @@ export default function Signup() {
               {error && <div className="alert alert-danger py-2">{error}</div>}
               {message && <div className="alert alert-success py-2">{message}</div>}
 
-              {/* Google button (placeholder – wire up later if you add OAuth) */}
+              {/* Google button (placeholder – wire up later if you add OAuth)
               <button type="button" className="btn btn-google w-100 mb-3" disabled>
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                      alt="" width="18" height="18" className="me-2" />
                 Continue with Google
-              </button>
+              </button> */}
 
               <div className="auth-divider my-3">
                 <span>or</span>
