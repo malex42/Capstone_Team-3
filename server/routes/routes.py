@@ -4,7 +4,7 @@ from handlers.account_handler import AccountHandler
 from routes.account_management import create_user_endpoint
 
 from routes.account_management import login_endpoint
-
+from routes.account_management import refresh_token_endpoint
 
 def setup_routes(app, account_handler: AccountHandler):
     """ Setup routes and bind to the app """
@@ -17,7 +17,7 @@ def setup_routes(app, account_handler: AccountHandler):
 
     app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
     app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
-
+    app.add_url_rule('/api/auth/refresh', view_func=refresh_token_endpoint, methods=['POST'])
 
 
 
