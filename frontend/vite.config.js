@@ -13,7 +13,7 @@ export default defineConfig({
     port: 5173, // frontend dev server
     proxy: {
       '/api': {
-        target: 'http://localhost:3333', //  Flask backend
+        target: 'https://localhost:3333', //  Flask backend
         changeOrigin: true,
       },
     },
