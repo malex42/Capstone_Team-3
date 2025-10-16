@@ -16,6 +16,7 @@ class Server:
         self.db_handler = DatabaseHandler(config.MONGO_URI)
         self.pw_handler = PasswordHandler()
         self.acct_handler = AccountHandler(db_handler=self.db_handler, pw_handler=self.pw_handler)
+        self.schedule_handler = ScheduleHandler(db_handler=self.db_handler)
 
         self.app = Flask(__name__)
 
