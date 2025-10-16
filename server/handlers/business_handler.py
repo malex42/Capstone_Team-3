@@ -48,6 +48,7 @@ class BusinessHandler:
             "created_by": user_id,
             "created_dt": datetime.now(),
             "schedules": {},
+            "people": []
         }
 
         self.business_collection.insert_one(business_dict)
@@ -69,3 +70,16 @@ class BusinessHandler:
                 raise BusinessAlreadyExistsError
 
         return None
+
+    def _insert_user(self, business, user_id):
+        pass
+        # TODO, insert user's id into the "people" list in the business (append, not replace)
+        # User ID, not username
+
+    def insert_user(self, code, username):
+        pass
+        # TODO 1. find business by the code (+ensure exists)
+        # 2. get business object (dict)
+        # 3. get user_id from username (may need to pass in account handler instance)
+        # 4. user _insert_user to update the DB
+

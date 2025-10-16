@@ -64,6 +64,10 @@ class AccountHandler:
         """ Helper method to return the role of the user """
         return user['role']
 
+    def _update_business_code(self, user:dict, code: str):
+        pass
+        # TODO function to update DB with business code (if valid)
+
     def get_user_role(self, input_username: str) -> str:
         user = self.find_user_by_name(input_username)
         return self._get_users_role(user)
@@ -115,6 +119,11 @@ class AccountHandler:
 
         return False
 
+    def update_business_code(self, code: str, username: str):
+        pass
+        # TODO 1. get user object using username
+        # 2. confirm business code is valid
+        # 3. use _update_business_code to update DB
 
 
     # def delete_user(self, input_username: str, input_password: str) -> bool:

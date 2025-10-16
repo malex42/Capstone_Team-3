@@ -39,4 +39,9 @@ def create_business_endpoint():
     return jsonify({"message": "failure, unknown"}), 400
 
 
+def link_business_endpoint():
+    pass
+#TODO
+
+
 
