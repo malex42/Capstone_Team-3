@@ -15,6 +15,9 @@ class BusinessHandler:
         """ Initializes the BusinessHandler with database handler """
         db = db_handler.database
 
+        #Stores the database reference
+        self.db = db
+
         # Initialize database for business management -
         # Create 'Businesses' Collection if it does not already exist
         if "Businesses" not in db.list_collection_names():
@@ -89,6 +92,17 @@ class BusinessHandler:
         if not business:
             raise ValueError("Business not found")
         # 2. get business object (dict)
-        # 3. get user_id from username (may need to pass in account handler instance)
-        # 4. user _insert_user to update the DB
 
+        # 3. get user_id from username (may need to pass in account handler instance)
+        users_collection = self.db["Users"]
+        user = users_collection.find_one({"username": username})
+
+        if not user:
+            raise ValueError("User could not found")
+
+        user_id = str(user.get('_id'))
+
+        if not user_id:
+            raise ValueError("Invalid user ID")
+        # 4. user _insert_user to update the DB
+        return self._insert_user(business, user_id)
