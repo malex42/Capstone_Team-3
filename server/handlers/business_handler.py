@@ -76,9 +76,18 @@ class BusinessHandler:
         # TODO, insert user's id into the "people" list in the business (append, not replace)
         # User ID, not username
 
+        self.business_collection.update_one(
+        {"_id": business["_id"]},
+        {"$set": {"people": user_id}}
+    )
+        return True
+
     def insert_user(self, code, username):
         pass
         # TODO 1. find business by the code (+ensure exists)
+        business = self.business_collection.find_one({"code": code})
+        if not business:
+            raise ValueError("Business not found")
         # 2. get business object (dict)
         # 3. get user_id from username (may need to pass in account handler instance)
         # 4. user _insert_user to update the DB

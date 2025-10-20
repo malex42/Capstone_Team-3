@@ -12,3 +12,4 @@ venv/
 
 # Config File
 /server/configurations/config.yaml
+frontend/node_modules/
