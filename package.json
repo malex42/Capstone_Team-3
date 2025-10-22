@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/malex42/Capstone_Team-3/issues"
   },
-  "homepage": "https://github.com/malex42/Capstone_Team-3#readme"
+  "homepage": "https://github.com/malex42/Capstone_Team-3#readme",
   "dependencies": {
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1"
