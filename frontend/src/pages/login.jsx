@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '/css/style.css'
+import { Link } from 'react-router-dom'
+
 //import { postJSON } from './lib/api'
 
 
@@ -117,7 +119,11 @@ export default function Login() {
               <button type="submit" className="btn btn-primary px-4 py-2" disabled={loading}>
                 {loading ? 'Logging in...' : 'Log in'}
               </button>
-              <a href="#" className="ms-3 align-self-center">First time user</a>
+{/*               <a href="#" className="ms-3 align-self-center">First time user</a> */}
+                    <Link to="/signup" className="ms-3 align-self-center">
+                      First time user
+                    </Link>
+
             </div>
           </div>
         </form>
