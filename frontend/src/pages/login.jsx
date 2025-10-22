@@ -55,22 +55,22 @@ export default function Login() {
 
         
         
-        <form className="mt-4" onSubmit={handleSubmit}>
-          <div className="row mb-3 align-items-center">
-            <label htmlFor="role" className="col-sm-3 col-form-label text-sm-end">Role:</label>
-            <div className="col-sm-9">
-              <select
-                id="role"
-                name="role"
-                className="form-select"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="manager">Manager</option>
-                <option value="employee">Employee</option>
-              </select>
-            </div>
-          </div>
+         <form className="mt-4" onSubmit={handleSubmit}>
+{/*           <div className="row mb-3 align-items-center"> */}
+{/*             <label htmlFor="role" className="col-sm-3 col-form-label text-sm-end">Role:</label> */}
+{/*             <div className="col-sm-9"> */}
+{/*               <select */}
+{/*                 id="role" */}
+{/*                 name="role" */}
+{/*                 className="form-select" */}
+{/*                 value={role} */}
+{/*                 onChange={(e) => setRole(e.target.value)} */}
+{/*               > */}
+{/*                 <option value="manager">Manager</option> */}
+{/*                 <option value="employee">Employee</option> */}
+{/*               </select> */}
+{/*             </div> */}
+{/*           </div> */}
 
           <div className="row mb-3 align-items-center">
             <label htmlFor="username" className="col-sm-3 col-form-label text-sm-end">Username:</label>
