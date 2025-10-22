@@ -1,5 +1,6 @@
 from flask import request, jsonify, g
 from flask_jwt_extended import verify_jwt_in_request, get_jwt
+from werkzeug.routing import ValidationError
 
 from handlers.enums.roles import Role
 from handlers.exceptions.exceptions import BusinessAlreadyExistsError
@@ -40,8 +41,28 @@ def create_business_endpoint():
 
 
 def link_business_endpoint():
-    pass
-#TODO
+    data = request.get_json()
+    verify_jwt_in_request()
+    claims = get_jwt()
+
+    if not data or 'business_code' not in data:
+        return jsonify({"message": "Business code is required"}), 400
+
+    business_code = data['business_code']
+    username = claims.get('username')
+
+    if not username:
+        return jsonify({"message": "Invalid username"}), 401
+
+    try:
+        business_key = g.business_handler.insert_user(business_code, username)
+
+        if business_key:
+            return jsonify({"message": "success"}), 200
+        else:
+            return jsonify({"message": "failure"}), 400
+    except ValidationError as e:
+        return jsonify({"message": str(e)}), 404
 
 
 
