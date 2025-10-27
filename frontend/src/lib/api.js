@@ -1,23 +1,14 @@
-// src/lib/api.js
-
-// Generic request helper
+// Generic JSON fetcher with sensible defaults
 export async function request(path, { method = 'GET', body, headers } = {}) {
   const res = await fetch(path, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    headers: { 'Content-Type': 'application/json', ...(headers || {}) },
     body: body ? JSON.stringify(body) : undefined,
-    credentials: 'include',
+    credentials: 'include', // sets JWT cookies if your backend does that
   });
 
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    data = {};
-  }
+  let data = {};
+  try { data = await res.json(); } catch { /* no body */ }
 
   if (!res.ok) {
     const msg = data?.message || `HTTP ${res.status}`;
@@ -26,43 +17,34 @@ export async function request(path, { method = 'GET', body, headers } = {}) {
   return data;
 }
 
-// Token helpers
-export function saveToken(token) {
-  localStorage.setItem('jwt', token);
+export function saveToken(jwt) {
+  try { localStorage.setItem('JWT', jwt); } catch {}
 }
 
 export function getToken() {
-  return localStorage.getItem('jwt');
+  try { return localStorage.getItem('JWT'); } catch { return null; }
 }
 
-export function clearToken() {
-  localStorage.removeItem('jwt');
-}
-
-// API calls
+// ---- API calls aligned to your Flask routes ----
 export function createUser({ username, password, role, code }) {
-  // This hits Flask's register()
   return request('/api/auth/register', {
     method: 'POST',
     body: { username, password, role, ...(code ? { code } : {}) },
   });
 }
 
-export function login({ username, password }) {
+export function loginUser({ username, password }) {
   return request('/api/auth/login', {
     method: 'POST',
     body: { username, password },
   });
 }
 
-export function authenticatedRequest(path, options = {}) {
+// For any authed call
+export function authenticatedRequest(path, opts = {}) {
   const token = getToken();
-  if (!token) throw new Error('No auth token found');
   return request(path, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
+    ...opts,
+    headers: { Authorization: token ? `Bearer ${token}` : undefined, ...(opts.headers || {}) },
   });
 }
