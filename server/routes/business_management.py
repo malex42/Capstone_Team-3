@@ -49,7 +49,7 @@ def link_business_endpoint():
         return jsonify({"message": "Business code is required"}), 400
 
     business_code = data['business_code']
-    username = claims.get('username')
+    username = claims.get('sub')
 
     if not username:
         return jsonify({"message": "Invalid username"}), 401
