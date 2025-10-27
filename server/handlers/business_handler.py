@@ -81,7 +81,7 @@ class BusinessHandler:
 
         self.business_collection.update_one(
         {"_id": business["_id"]},
-        {"$set": {"people": user_id}}
+        {"$addToSet": {"people": user_id}}
     )
         return True
 
