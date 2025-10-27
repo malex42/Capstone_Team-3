@@ -1,10 +1,11 @@
 import './App.css'
 import SignupPage from './pages/signup.jsx'
-
+import EmployeeHome from './pages/employeeHome.jsx'
+import ManagerHome from './pages/managerHome.jsx'
 function App() {
   return (
     <div>
-      <SignupPage />
+      <ManagerHome />
     </div>
   )
 }
