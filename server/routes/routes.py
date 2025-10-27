@@ -1,11 +1,10 @@
 from flask import g
+
 from handlers.account_handler import AccountHandler
 from handlers.business_handler import BusinessHandler
-from routes.account_management import create_user_endpoint
 
-from routes.account_management import login_endpoint
+from routes.account_management import create_user_endpoint, login_endpoint, refresh_token_endpoint
 from routes.business_management import create_business_endpoint
-
 
 def setup_routes(app, account_handler: AccountHandler, business_handler: BusinessHandler):
     """ Setup routes and bind to the app """
@@ -17,12 +16,9 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
         g.account_handler = account_handler
         g.business_handler = business_handler
 
-    app.add_url_rule('/auth/register', view_func=create_user_endpoint, methods=['POST'])
-    app.add_url_rule('/auth/login', view_func=login_endpoint, methods=['POST'])
-    app.add_url_rule('/manager/new/business', view_func=create_business_endpoint, methods=['POST'])
-
-
-
+    app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
+    app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
+    app.add_url_rule('/api/manager/new/business', view_func=create_business_endpoint, methods=['POST'])
 
 '''FOR LATER REFERENCE - IGNORE'''
 # def protectedEndpoint():

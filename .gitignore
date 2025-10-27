@@ -13,4 +13,5 @@ venv/
 # Config File
 /server/configurations/config.yaml
 
-
+#ssl files
+/server/ssl
