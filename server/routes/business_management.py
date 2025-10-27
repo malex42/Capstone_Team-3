@@ -1,5 +1,5 @@
 from flask import request, jsonify, g
-from flask_jwt_extended import verify_jwt_in_request, get_jwt
+from flask_jwt_extended import verify_jwt_in_request, get_jwt, get_jwt_identity
 from werkzeug.routing import ValidationError
 
 from handlers.enums.roles import Role
@@ -11,12 +11,13 @@ def create_business_endpoint():
     """ Endpoint to create a new business """
     data = request.get_json()
 
-    # JWT and Role enforcement check
+    # JWT check
     verify_jwt_in_request()
 
     # Get the claims from the JWT token
     claims = get_jwt()
 
+    # Role enforcement check
     auth_check = is_authorized(claims, [Role.MANAGER])
     if auth_check:
         return auth_check
@@ -41,15 +42,25 @@ def create_business_endpoint():
 
 
 def link_business_endpoint():
+    """ Endpoint to create a new business """
     data = request.get_json()
+
+    # JWT check
     verify_jwt_in_request()
+
+    # Get the claims from the JWT token
     claims = get_jwt()
 
-    if not data or 'business_code' not in data:
+    # Role enforcement check
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return auth_check
+
+    if not data or 'code' not in data:
         return jsonify({"message": "Business code is required"}), 400
 
-    business_code = data['business_code']
-    username = claims.get('sub')
+    business_code = data['code']
+    username = get_jwt_identity()
 
     if not username:
         return jsonify({"message": "Invalid username"}), 401
