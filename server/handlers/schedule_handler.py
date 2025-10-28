@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pymongo
+from bson import ObjectId
 
 from handlers.db_handler import DatabaseHandler
 
@@ -44,6 +45,18 @@ class ScheduleHandler:
 
         self.schedules_collection.insert_one(schedule_dict)
 
+    def _insert_shift(self, schedule_id: str, shift: dict):
+        result = self.schedules_collection.update_one(
+            {"_id": ObjectId(schedule_id)},
+            {"$push": {"shifts": shift}}
+        )
+
+        if result.modified_count > 0:
+            return True
+        else:
+            return False
+
+
     def new_schedule(self, year: str, month: str, business_code: str, user_id: str):
         try:
             self._insert_schedule(year, month, business_code, user_id)
@@ -55,4 +68,18 @@ class ScheduleHandler:
         schedules = list(self.schedules_collection.find({'business_code': business_code}))
         return schedules
 
+    def add_shift(self, schedule_id: str, shift: dict):
 
+        required_keys = ['employee_id', 'start', 'end']
+
+        # Check that all required keys are present in the shift dictionary
+        if not all(key in shift for key in required_keys):
+            return False
+
+        # Add a unique _id field to the shift
+        shift.update({'_id': ObjectId()})
+
+        if self._insert_shift(schedule_id=schedule_id, shift=shift):
+            return True
+
+        return False
