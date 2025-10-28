@@ -77,9 +77,20 @@ class ScheduleHandler:
             return False
 
         # Add a unique _id field to the shift
-        shift.update({'_id': ObjectId()})
+        shift.update({'_id': str(ObjectId())})
 
         if self._insert_shift(schedule_id=schedule_id, shift=shift):
             return True
 
         return False
+
+    def delete_shift(self, schedule_id: str, shift_id: str):
+        result = self.schedules_collection.update_one(
+            {"_id": ObjectId(schedule_id)},
+            {"$pull": {"shifts": {"_id": shift_id}}}
+        )
+
+        if result.modified_count > 0:
+            return True
+        else:
+            return False
