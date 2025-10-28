@@ -70,9 +70,16 @@ class AccountHandler:
         """ Helper method to return the role of the user """
         return user['role']
 
-    def _update_business_code(self, user:dict, code: str):
-        pass
-        # TODO function to update DB with business code (if valid)
+    def _update_business_code(self, user: dict, code: str):
+        result = self.users_collection.update_one(
+            {"_id": user["_id"]},  # Match the user by their _id
+            {"$set": {"business_code": code}}  # Set the business_code field
+        )
+
+        if result.modified_count > 0:
+            return True
+        else:
+            return False
 
     def get_user_role(self, input_username: str) -> str:
         user = self.find_user_by_name(input_username)
@@ -126,10 +133,11 @@ class AccountHandler:
         return False
 
     def update_business_code(self, code: str, username: str):
-        pass
         # TODO 1. get user object using username
-        # 2. confirm business code is valid
-        # 3. use _update_business_code to update DB
+        user = self.find_user_by_name(username)
+        if user:
+            return self._update_business_code(user, code)
+
 
 
     # def delete_user(self, input_username: str, input_password: str) -> bool:

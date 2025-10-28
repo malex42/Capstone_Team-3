@@ -69,7 +69,9 @@ def link_business_endpoint():
         business_key = g.business_handler.insert_user(business_code, username)
 
         if business_key:
-            return jsonify({"message": "success"}), 200
+            if g.account_handler.update_business_code(code=business_code, username=username):
+                return jsonify({"message": "success"}), 200
+
         else:
             return jsonify({"message": "failure"}), 400
     except ValidationError as e:
