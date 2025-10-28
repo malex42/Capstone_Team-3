@@ -51,5 +51,8 @@ class ScheduleHandler:
         except pymongo.errors.DuplicateKeyError:
             return False
 
+    def get_schedules(self, business_code: str):
+        schedules = list(self.schedules_collection.find({'business_code': business_code}))
+        return schedules
 
 

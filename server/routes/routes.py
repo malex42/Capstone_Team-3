@@ -6,7 +6,7 @@ from handlers.schedule_handler import ScheduleHandler
 
 from routes.account_management import create_user_endpoint, login_endpoint
 from routes.business_management import create_business_endpoint, link_business_endpoint
-from routes.schedule_management import new_schedule_endpoint
+from routes.schedule_management import new_schedule_endpoint, get_schedules_endpoint
 
 
 def setup_routes(app, account_handler: AccountHandler, business_handler: BusinessHandler,
@@ -27,7 +27,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/manager/new/business', view_func=create_business_endpoint, methods=['POST'])
     app.add_url_rule('/api/link_business', view_func=link_business_endpoint, methods=['POST'])
 
-    # app.add_url_rule('/api/manager/schedules', view_func=, methods=['GET'])
+    app.add_url_rule('/api/manager/schedules', view_func=get_schedules_endpoint, methods=['GET'])
     app.add_url_rule('/api/manager/schedules/new', view_func=new_schedule_endpoint, methods=['POST'])
 
     # app.add_url_rule('/api/manager/schedules/add_shift', view_func=, methods=['POST'])
