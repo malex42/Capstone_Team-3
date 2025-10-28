@@ -107,9 +107,10 @@ def refresh_token_endpoint():
     username = get_jwt_identity()
     user = g.account_handler.find_user_by_name(username)
     role = user['role']
+    user_id = user['_id']
     code = user.get('business_code', None)
 
-    new_access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
+    new_access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
 
     decoded = pyjwt.decode(new_access_token, options={"verify_signature": False})
     exp_time = datetime.fromtimestamp(decoded.get('exp'))
