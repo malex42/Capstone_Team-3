@@ -127,5 +127,35 @@ def delete_shift_endpoint():
     return jsonify({"message": "failure"}), 400
 
 
+def edit_shift_endpoint():
+    """ Endpoint to add a shift to a schedule """
+    data = request.get_json()
+
+    # JWT check
+    verify_jwt_in_request()
+
+    # Get the claims from the JWT token
+    claims = get_jwt()
+
+    # Role enforcement check
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return
+
+    if not data or 'schedule_id' not in data or 'shift' not in data:
+        return jsonify({"message": "Schedule ID and shift object are required"}), 400
+
+    schedule_id = data['schedule_id']
+    shift = data['shift']
+
+    try:
+        if g.schedule_handler.edit_shift(schedule_id=schedule_id, shift=shift):
+            return jsonify({"message": "success"}), 200
+
+    except Exception as e:
+        msg = f"failure: {e}"
+        return jsonify({"message": msg}), 400
+
+    return jsonify({"message": "failure"}), 400
 
 

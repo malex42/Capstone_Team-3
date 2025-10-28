@@ -94,3 +94,29 @@ class ScheduleHandler:
             return True
         else:
             return False
+
+    def edit_shift(self, schedule_id: str, shift: dict):
+        required_keys = ['_id', 'employee_id', 'start', 'end']
+
+        # Check that all required keys are present in the shift dictionary
+        if not all(key in shift for key in required_keys):
+            return False
+
+        # Remove _id from the update data
+        shift_data = {k: v for k, v in shift.items() if k != "_id"}
+
+        result = self.schedules_collection.update_one(
+            {
+                "_id": ObjectId(schedule_id),
+                "shifts._id": shift['_id']
+            },
+            {
+                "$set": {f"shifts.$.{key}": value for key, value in shift_data.items()}
+            }
+        )
+
+        if result.modified_count > 0:
+            return True
+        else:
+            return False
+

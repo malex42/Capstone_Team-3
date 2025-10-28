@@ -7,7 +7,7 @@ from handlers.schedule_handler import ScheduleHandler
 from routes.account_management import create_user_endpoint, login_endpoint
 from routes.business_management import create_business_endpoint, link_business_endpoint
 from routes.schedule_management import new_schedule_endpoint, get_schedules_endpoint, add_shift_endpoint, \
-    delete_shift_endpoint
+    delete_shift_endpoint, edit_shift_endpoint
 
 
 def setup_routes(app, account_handler: AccountHandler, business_handler: BusinessHandler,
@@ -32,7 +32,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/manager/schedules/new', view_func=new_schedule_endpoint, methods=['POST'])
     app.add_url_rule('/api/manager/schedules/add_shift', view_func=add_shift_endpoint, methods=['POST'])
     app.add_url_rule('/api/manager/schedules/delete_shift', view_func=delete_shift_endpoint, methods=['POST'])
-    # app.add_url_rule('/api/schedules/edit_shift', view_func=, methods=['POST'])
+    app.add_url_rule('/api/manager/schedules/edit_shift', view_func=edit_shift_endpoint, methods=['POST'])
 
 
 '''FOR LATER REFERENCE - IGNORE'''
