@@ -44,8 +44,11 @@ class BusinessHandler:
         if "Employees" not in db.list_collection_names():
             db.create_collection("Employees")
 
-        self.employee_collection = db["Employees"]
+        self.employees_collection = db["Employees"]
 
+        self.employees_collection.create_index([("business_code", 1)], unique=False)
+        self.employees_collection.create_index([("username", 1)], unique=True)
+        self.employees_collection.create_index([("user_id", 1)], unique=False)
 
     def _insert_business(self, business_name: str, hours: dict, user_id: str, code: str):
         business_dict = {
