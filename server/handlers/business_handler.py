@@ -87,4 +87,14 @@ class BusinessHandler:
 
     def get_all_employees(self, business_code: str):
         """ Get all employees by business code """
+        employees = self.employees_collection.find({"business_code": business_code})
 
+        return [
+            {
+              "employee_id": str(emp.get("_id")),
+              "username": emp.get("username", ""),
+              "first_name": emp.get("first_name", ""),
+              "last_name": emp.get("last_name", "")
+            }
+            for emp in employees
+        ]
