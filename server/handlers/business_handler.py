@@ -40,6 +40,13 @@ class BusinessHandler:
         # Ensure field 'schedules' exists
         self.business_collection.create_index([("schedules", 1)], unique=True)
 
+        # Create 'Employees' collection if it does not already exist
+        if "Employees" not in db.list_collection_names():
+            db.create_collection("Employees")
+
+        self.employee_collection = db["Employees"]
+
+
     def _insert_business(self, business_name: str, hours: dict, user_id: str, code: str):
         business_dict = {
             "business_name": business_name,
