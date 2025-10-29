@@ -84,3 +84,7 @@ class BusinessHandler:
                 raise BusinessAlreadyExistsError
 
         return None
+
+    def get_all_employees(self, business_code: str):
+        """ Get all employees by business code """
+
