@@ -1,14 +1,13 @@
 import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '/css/style.css'
-import { Link } from 'react-router-dom'
-
-import { postJSON } from '@/lib/api'
+import { Link, useNavigate } from 'react-router-dom'
+import { loginUser, saveToken } from '@/lib/api'
 
 
 
 export default function Login() {
-  const [role, setRole] = useState('manager')
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -24,14 +23,11 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const { ok, data } = await postJSON('/api/auth/login', { role, username, password })
-      if (!ok) throw new Error((data && data.message) || 'Login failed')
-      const token = data.access_token || data.token
-      if (token) localStorage.setItem('token', token)
-
-      window.location.href = '/'
+      const res = await loginUser({ username, password })
+      if (res?.JWT) saveToken(res.JWT)
+      navigate('/')
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Login failed')
     } finally {
       setLoading(false)
     }
