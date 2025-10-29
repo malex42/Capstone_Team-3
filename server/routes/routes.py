@@ -5,7 +5,7 @@ from routes.account_management import create_user_endpoint
 
 from routes.account_management import login_endpoint
 from routes.business_management import create_business_endpoint
-
+from routes.business_management import get_all_employees_endpoint
 from routes.account_management import refresh_token_endpoint
 
 def setup_routes(app, account_handler: AccountHandler, business_handler: BusinessHandler):
@@ -21,7 +21,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
     app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
     app.add_url_rule('/api/manager/new/business', view_func=create_business_endpoint, methods=['POST'])
-
+    app.add_url_rule('/api/manager/business/employees', view_func=get_all_employees_endpoint, methods=['GET'])
 
 
 
