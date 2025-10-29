@@ -46,8 +46,13 @@ class BusinessHandler:
 
         self.employees_collection = db["Employees"]
 
+        # Ensure field 'business code' exists
         self.employees_collection.create_index([("business_code", 1)], unique=False)
+
+        # Ensure field username exists
         self.employees_collection.create_index([("username", 1)], unique=True)
+
+        # Ensure field user id exists
         self.employees_collection.create_index([("user_id", 1)], unique=False)
 
     def _insert_business(self, business_name: str, hours: dict, user_id: str, code: str):
