@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import '/css/style.css'
 import { Link } from 'react-router-dom'
 
-//import { postJSON } from './lib/api'
+import { postJSON } from '@/lib/api'
 
 
 
@@ -24,7 +24,7 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const { ok, data } = await postJSON('/api/login', { role, username, password })
+      const { ok, data } = await postJSON('/api/auth/login', { role, username, password })
       if (!ok) throw new Error((data && data.message) || 'Login failed')
       const token = data.access_token || data.token
       if (token) localStorage.setItem('token', token)
