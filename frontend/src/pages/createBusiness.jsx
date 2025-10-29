@@ -118,13 +118,13 @@ export default function CreateBusiness() {
     try {
       if (linkCode.trim()) {
         // LINK EXISTING BUSINESS
-        await authenticatedRequest("/api/business/link", {
+        await authenticatedRequest("/api/link_business", {
           method: "POST",
           body: { code: linkCode.trim() },
         });
       } else {
         // CREATE NEW BUSINESS
-        await authenticatedRequest("/api/business", {
+        await authenticatedRequest("/api/manager/new/business", {
           method: "POST",
           body: payloadForCreate(),
         });
