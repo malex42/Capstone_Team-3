@@ -121,11 +121,7 @@ class AccountHandler:
 
         return False
 
-    def update_business_code(self, code: str, username: str):
-        # TODO 1. get user object using username
-        user = self.find_user_by_name(username)
-        if user:
-            return self._update_business_code(user, code)
+
 
 
     # def delete_user(self, input_username: str, input_password: str) -> bool:
