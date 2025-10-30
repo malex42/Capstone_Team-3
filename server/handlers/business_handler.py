@@ -15,6 +15,9 @@ class BusinessHandler:
         """ Initializes the BusinessHandler with database handler """
         db = db_handler.database
 
+        #Stores the database reference
+        self.db = db
+
         # Initialize database for business management -
         # Create 'Businesses' Collection if it does not already exist
         if "Businesses" not in db.list_collection_names():
@@ -40,6 +43,9 @@ class BusinessHandler:
         # Ensure field 'schedules' exists
         self.business_collection.create_index([("schedules", 1)], unique=True)
 
+        # Ensure field 'employees' exists
+        self.business_collection.create_index([("employees", 1)], unique=False)
+
         # Create 'Employees' collection if it does not already exist
         if "Employees" not in db.list_collection_names():
             db.create_collection("Employees")
@@ -63,9 +69,22 @@ class BusinessHandler:
             "created_by": user_id,
             "created_dt": datetime.now(),
             "schedules": {},
+            "people": []
         }
 
         self.business_collection.insert_one(business_dict)
+
+    def _insert_user(self, business: dict, user_id: str):
+        pass
+        # TODO, insert user's id into the "people" list in the business (append, not replace)
+        # User ID, not username
+
+        self.business_collection.update_one(
+            {"_id": business["_id"]},
+            {"$addToSet": {"employees": user_id}}
+        )
+        return True
+
 
     def _insert_user(self, business: dict, user_id: str):
         pass
@@ -95,6 +114,31 @@ class BusinessHandler:
                 raise BusinessAlreadyExistsError
 
         return None
+
+
+
+    def insert_user(self, code, username):
+        pass
+        # TODO 1. find business by the code (+ensure exists)
+        business = self.business_collection.find_one({"code": code})
+        if not business:
+            raise ValueError("Business not found")
+
+        # 2. get user_id from username (may need to pass in account handler instance)
+        users_collection = self.db["Users"]
+        user = users_collection.find_one({"username": username})
+
+        if not user:
+            raise ValueError("User could not be found")
+
+        user_id = str(user.get('_id'))
+
+        if not user_id:
+            raise ValueError("Invalid user ID")
+
+        # 3. use _insert_user to update the DB
+        return self._insert_user(business, user_id)
+
 
 
 
