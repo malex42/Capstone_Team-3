@@ -67,6 +67,17 @@ class BusinessHandler:
 
         self.business_collection.insert_one(business_dict)
 
+    def _insert_user(self, business: dict, user_id: str):
+        pass
+        # TODO, insert user's id into the "people" list in the business (append, not replace)
+        # User ID, not username
+
+        self.business_collection.update_one(
+            {"_id": business["_id"]},
+            {"$addToSet": {"employees": user_id}}
+        )
+        return True
+
     def create_business(self, business_name: str, hours: dict, user_id):
         """ Create a new business by validating input, generating a code, and inserting into the DB """
 
@@ -84,6 +95,28 @@ class BusinessHandler:
                 raise BusinessAlreadyExistsError
 
         return None
+
+    def insert_user(self, code, username):
+        pass
+        # TODO 1. find business by the code (+ensure exists)
+        business = self.business_collection.find_one({"code": code})
+        if not business:
+            raise ValueError("Business not found")
+
+        # 2. get user_id from username (may need to pass in account handler instance)
+        users_collection = self.db["Users"]
+        user = users_collection.find_one({"username": username})
+
+        if not user:
+            raise ValueError("User could not be found")
+
+        user_id = str(user.get('_id'))
+
+        if not user_id:
+            raise ValueError("Invalid user ID")
+
+        # 3. use _insert_user to update the DB
+        return self._insert_user(business, user_id)
 
     def get_all_employees(self, business_code: str):
         """ Get all employees by business code """

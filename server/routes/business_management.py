@@ -1,5 +1,6 @@
 from flask import request, jsonify, g
-from flask_jwt_extended import verify_jwt_in_request, get_jwt
+from flask_jwt_extended import verify_jwt_in_request, get_jwt, get_jwt_identity
+from werkzeug.routing import ValidationError
 
 from handlers.enums.roles import Role
 from handlers.exceptions.exceptions import BusinessAlreadyExistsError
@@ -37,6 +38,42 @@ def create_business_endpoint():
         return jsonify({"message": e.message}), 400
 
     return jsonify({"message": "failure, unknown"}), 400
+
+def link_business_endpoint():
+    """ Endpoint to create a new business """
+    data = request.get_json()
+
+    # JWT check
+    verify_jwt_in_request()
+
+    # Get the claims from the JWT token
+    claims = get_jwt()
+
+    # Role enforcement check
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return auth_check
+
+    if not data or 'code' not in data:
+        return jsonify({"message": "Business code is required"}), 400
+
+    business_code = data['code']
+    username = get_jwt_identity()
+
+    if not username:
+        return jsonify({"message": "Invalid username"}), 401
+
+    try:
+        business_key = g.business_handler.insert_user(business_code, username)
+
+        if business_key:
+            if g.account_handler.update_business_code(code=business_code, username=username):
+                return jsonify({"message": "success"}), 200
+
+        else:
+            return jsonify({"message": "failure"}), 400
+    except ValidationError as e:
+        return jsonify({"message": str(e)}), 404
 
 def get_all_employees_endpoint():
     """ Endpoint to get all employees """
