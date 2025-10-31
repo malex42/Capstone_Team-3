@@ -2,13 +2,16 @@ import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '/css/style.css'
 import { Link } from 'react-router-dom'
+import { jwtDecode } from 'jwt-decode'
+import { login, saveToken } from '@/lib/api'
+
+
 
 //import { postJSON } from './lib/api'
 
 
 
 export default function Login() {
-  const [role, setRole] = useState('manager')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,23 +22,74 @@ export default function Login() {
   const toggleShowPassword = () => setShowPassword(s => !s)
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  e.preventDefault()
+  setError('')
+  setLoading(true)
 
-    try {
-      const { ok, data } = await postJSON('/api/login', { role, username, password })
-      if (!ok) throw new Error((data && data.message) || 'Login failed')
-      const token = data.access_token || data.token
-      if (token) localStorage.setItem('token', token)
+  try {
+    const payload = { username, password }
+    const res = await login(payload) // same as createUser()
 
-      window.location.href = '/'
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+    if (res?.JWT) {
+      saveToken(res.JWT)
+
+      // decode token for role-based routing
+      const decoded = jwtDecode(res.JWT)
+      const userRole = decoded.role || decoded.roles || decoded.userRole
+      // redirect based on role
+      if (userRole === 'manager') {
+        window.location.href = '/manager-home'
+      } else if (userRole === 'EMPLOYEE') {
+        window.location.href = '/employee-home'
+      } else {
+          console.log(userRole)
+
+        window.location.href = '/'
+      }
+
+    } else {
+      throw new Error('Invalid response from server')
     }
+  } catch (err) {
+    setError(err.message || 'Login failed')
+  } finally {
+    setLoading(false)
   }
+}
+
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault()
+//     setError('')
+//     setLoading(true)
+//
+//     try {
+//       const { ok, data } = await login({username, password})
+//       if (!ok) throw new Error((data && data.message) || 'Login failed')
+//       const token = data.access_token || data.token
+//       if (token) localStorage.setItem('jwt', token)
+//
+//       const decoded = jwtDecode(token)
+//       const userRole = decoded.role || decoded.roles || decoded.userRole
+//       const [role, setRole] = useState(userRole)
+//
+//
+//       if (userRole == 'manager') {
+//           window.location.href = '/manager-home'
+//           }
+//       else if (userRole == 'employee') {
+//           window.location.href = '/employee-home'
+//           }
+//       else {
+//           window.location.href = '/'
+//           }
+//
+//     } catch (err) {
+//       setError(err.message)
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
 
   return (
     
