@@ -20,3 +20,9 @@ def app():
     return app
 
 
+@pytest.fixture
+def mock_handlers():
+    """Create mock handlers"""
+    account_handler = Mock(spec=AccountHandler)
+    business_handler = Mock(spec=BusinessHandler)
+    return account_handler, business_handler
