@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import '/css/style.css'
+//import '../css/style.css'
 import { Link } from 'react-router-dom'
 
 //import { postJSON } from './lib/api'
