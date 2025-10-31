@@ -13,7 +13,6 @@ from handlers.password_handler import PasswordHandler
 from handlers.validation_handler import ValidationHandler
 from handlers.exceptions.exceptions import UserAlreadyExistsError, PasswordFormatError
 
-
 class AccountHandler:
 
     def __init__(self, db_handler: DatabaseHandler, pw_handler: PasswordHandler):
