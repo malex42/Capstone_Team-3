@@ -1,12 +1,19 @@
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Login from './pages/login.jsx'
 import SignupPage from './pages/signup.jsx'
-import EmployeeHome from './pages/employeeHome.jsx'
-import ManagerHome from './pages/managerHome.jsx'
+import './App.css'
+
 function App() {
   return (
-    <div>
-      <ManagerHome />
-    </div>
+    <Router>
+      <Routes>
+        {/* Default route */}
+        <Route path="/" element={<Login />} />
+
+        {/* Signup page */}
+        <Route path="/signup" element={<SignupPage />} />
+      </Routes>
+    </Router>
   )
 }
 
