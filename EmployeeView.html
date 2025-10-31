@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="Zachary Wilson">
+        <meta name="description" content="Webpage for a fictional hero">
+        <title>Employee</title>
+        <link rel="stylesheet" href="style.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <Header class="p-5 text-white text-center">
+            <h1>GoodWorks</h1>
+        </Header>
+
+        <div class="container mt-3">
+          <div class="row">
+            
+            <aside class="col-md-3 order-md-1 d-flex flex-column align-items-start gap-1 position-sticky" style="top:1rem;">
+                <button class="btn btn-outline-primary w-100">
+                    <img src="img/clockIcon.png" alt="Log Activity" style="height:24px; margin-right:8px;">Log activity
+                </button>
+                <button class="btn btn-outline-primary w-100">
+                    <img src="img/calenderIcon.png" alt="My Shifts" style="height:24px; margin-right:8px;">My Shifts
+                </button>
+                <button class="btn btn-outline-primary w-100">
+                    <img src="img/arrowIcon.png" alt="Post Shifts" style="height:24px; margin-right:8px;">Post Shifts
+                </button>
+                <button class="btn btn-outline-primary w-100">
+                    <img src="img/accountIcon.png" alt="Account" style="height:24px; margin-right:8px;">Account
+                </button>
+                <button class="btn btn-outline-primary w-100">
+                    <img src="img/dollarIcon.png" alt="My Pay" style="height:24px; margin-right:8px;">My Pay
+                </button>
+            </aside>
+
+            <!-- main content -->
+            <div class="col-md-9 order-md-2 text-center">
+              <h2>Welcome, Employee!</h2>
+              <p>This is your employee dashboard where you can log activities, view your shifts, post available shifts, manage your account, and check your pay.</p>
+
+              <!-- FullCalendar placeholder -->
+              <div id="calendar" class="my-4"></div>
+
+              
+            </div>
+          </div>
+        </div>
+
+      
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+              initialView: 'dayGridMonth',
+              height: 'auto',
+              events: [
+                { title: 'Shift: Morning', start: '2025-10-15' },
+                { title: 'Shift: Evening', start: '2025-10-20' }
+              ]
+            });
+            calendar.render();
+          });
+        </script>
+    </body>
+</html>

@@ -29,7 +29,8 @@ def create_user_endpoint():
     try:
         # Attempt to create the user and return success message
         if g.account_handler.create_user(username, password, role, code):
-            access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
+            user_id = g.account_handler.find_user_by_name(username)['_id']
+            access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
             set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
 
             # Decode token to read expiration
@@ -46,13 +47,16 @@ def create_user_endpoint():
 
 
     except (PasswordFormatError, UserAlreadyExistsError) as e:
+        # Catch known errors
         return jsonify({"message": e.message}), 400
 
+    # Default error response if something else goes wrong
     return jsonify({"message": "Failure. Unknown Error"}), 400
 
 
 
 def login_endpoint():
+    """ Endpoint to login a user """
     data = request.get_json()
 
     if not data or 'username' not in data or 'password' not in data:
@@ -65,9 +69,10 @@ def login_endpoint():
         user = g.account_handler.find_user_by_name(username)
         role = user['role']
         code = user.get('business_code', None)
+        user_id = user['_id']
 
         # Create JWT token
-        access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
+        access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
         set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
 
         # Decode token to read expiration
@@ -82,7 +87,6 @@ def login_endpoint():
         }), 200
 
     return jsonify({"message": "Invalid username or password"}), 401
-
 
 
 @jwt_required()
