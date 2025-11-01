@@ -1,105 +1,105 @@
+// src/pages/CreateBusiness.jsx
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authenticatedRequest } from "@/lib/api"; // adjust if your API helper differs
-import "../styles/createBusiness.css";               // optional extra styles
+import { authenticatedRequest } from "@/lib/api";
 
-const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-// helper: keep HH 0–23, MM 0–59
+// helpers
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v ?? 0));
 const toInt = (v) => Number.isFinite(+v) ? parseInt(v, 10) : 0;
+const to24 = (h12, mer) => {
+  const h = clamp(toInt(h12), 1, 12);
+  if (!Number.isFinite(h)) return 0;
+  if (mer === "AM") return h % 12;   // 12AM -> 0
+  return (h % 12) + 12;              // 12PM -> 12
+};
 
 export default function CreateBusiness() {
   const navigate = useNavigate();
 
-  // top fields
-  const [appName] = useState("Good Work");            // banner / title
+  // left column fields
   const [businessName, setBusinessName] = useState("");
-  const [businessCode, setBusinessCode] = useState("");  // optional internal code when creating
+  const [businessCode, setBusinessCode] = useState("");
 
-  // link existing
-  const [linkCode, setLinkCode] = useState("");
-
-  // hours state
+  // hours state (right column)
   const [hours, setHours] = useState(
     DAYS.map((day) => ({
       day,
       enabled: false,
-      openHH: "", openMM: "",
-      closeHH: "", closeMM: "",
+      open12: "", openMM: "", openMer: "AM",
+      close12: "", closeMM: "", closeMer: "PM",
     }))
   );
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const disabledSubmit = useMemo(() => {
-    if (!businessName.trim() && !linkCode.trim()) return true; // need either create or link
-    return false;
-  }, [businessName, linkCode]);
+  const disabledSubmit = useMemo(() => !businessName.trim(), [businessName]);
 
-  const onToggleDay = (i, checked) => {
+  const onToggleDay = (i, checked) =>
     setHours((prev) => {
       const next = [...prev];
       next[i].enabled = checked;
       return next;
     });
-  };
 
-  const onTimeChange = (i, field, value) => {
+  const onTimeChange = (i, field, value) =>
     setHours((prev) => {
       const next = [...prev];
-      // keep only numbers; allow empty for easy typing
       const sanitized = value === "" ? "" : value.replace(/\D+/g, "");
       next[i][field] = sanitized;
       return next;
     });
-  };
 
-  // simple validation for HH:MM ranges & open < close (same-day)
+  const onMerChange = (i, field, value) =>
+    setHours((prev) => {
+      const next = [...prev];
+      next[i][field] = value; // "AM" | "PM"
+      return next;
+    });
+
   const validate = () => {
-    if (linkCode.trim()) return { ok: true }; // linking path only
+    if (!businessName.trim()) return { ok: false, msg: "Business name is required." };
 
-    if (!businessName.trim()) {
-      return { ok: false, msg: "Business name is required (or provide a link code)." };
-    }
     const enabledDays = hours.filter((d) => d.enabled);
-    if (enabledDays.length === 0) {
-      return { ok: false, msg: "Select at least one day and provide open/close times." };
-    }
+    if (enabledDays.length === 0) return { ok: false, msg: "Select at least one day and fill times." };
+
     for (const d of enabledDays) {
-      if (
-        d.openHH === "" || d.openMM === "" ||
-        d.closeHH === "" || d.closeMM === ""
-      ) {
+      if (d.open12 === "" || d.openMM === "" || d.close12 === "" || d.closeMM === "")
         return { ok: false, msg: `Please fill times for ${d.day}.` };
-      }
-      const oh = clamp(toInt(d.openHH), 0, 23);
+
+      const oh = to24(d.open12, d.openMer);
+      const ch = to24(d.close12, d.closeMer);
       const om = clamp(toInt(d.openMM), 0, 59);
-      const ch = clamp(toInt(d.closeHH), 0, 23);
       const cm = clamp(toInt(d.closeMM), 0, 59);
+
       const openMin = oh * 60 + om;
       const closeMin = ch * 60 + cm;
-      if (openMin >= closeMin) {
+      if (openMin >= closeMin)
         return { ok: false, msg: `Close time must be after open time on ${d.day}.` };
-      }
     }
     return { ok: true };
   };
 
   const payloadForCreate = () => {
-    // convert to HH:MM 24h strings only for enabled days
     const schedule = hours
       .filter((d) => d.enabled)
-      .map((d) => ({
-        day: d.day,
-        open: `${String(clamp(toInt(d.openHH), 0, 23)).padStart(2, "0")}:${String(clamp(toInt(d.openMM), 0, 59)).padStart(2, "0")}`,
-        close: `${String(clamp(toInt(d.closeHH), 0, 23)).padStart(2, "0")}:${String(clamp(toInt(d.closeMM), 0, 59)).padStart(2, "0")}`,
-      }));
+      .map((d) => {
+        const oh = to24(d.open12, d.openMer);
+        const ch = to24(d.close12, d.closeMer);
+        const om = clamp(toInt(d.openMM), 0, 59);
+        const cm = clamp(toInt(d.closeMM), 0, 59);
+        return {
+          day: d.day,
+          open: `${String(oh).padStart(2, "0")}:${String(om).padStart(2, "0")}`,
+          close: `${String(ch).padStart(2, "0")}:${String(cm).padStart(2, "0")}`,
+        };
+      });
 
     return {
       name: businessName.trim(),
-      code: businessCode.trim() || undefined, // optional
+      code: businessCode.trim() || undefined,
       hours: schedule,
     };
   };
@@ -116,20 +116,10 @@ export default function CreateBusiness() {
 
     setSubmitting(true);
     try {
-      if (linkCode.trim()) {
-        // LINK EXISTING BUSINESS
-        await authenticatedRequest("/api/business/link", {
-          method: "POST",
-          body: { code: linkCode.trim() },
-        });
-      } else {
-        // CREATE NEW BUSINESS
-        await authenticatedRequest("/api/business", {
-          method: "POST",
-          body: payloadForCreate(),
-        });
-      }
-      // navigate to home on success
+      await authenticatedRequest("/api/business", {
+        method: "POST",
+        body: payloadForCreate(),
+      });
       navigate("/");
     } catch (err) {
       setError(err?.message || "Something went wrong.");
@@ -138,185 +128,197 @@ export default function CreateBusiness() {
     }
   };
 
+  // Simple, inline styles for the “big box” two-column layout (stacks on small screens)
+  const pageStyle = { background: "#f5f7fb", minHeight: "100vh", padding: "32px 16px" };
+  const bigBox = {
+    maxWidth: 1120,
+    margin: "0 auto",
+    background: "#fff",
+    borderRadius: 16,
+    boxShadow: "0 8px 24px rgba(16,24,40,.08)",
+    padding: "24px 24px 28px",
+  };
+  const grid = {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: 24,
+  };
+  const gridLg = {
+    display: "grid",
+    gridTemplateColumns: "420px 1fr",
+    gap: 32,
+  };
+
+  // simple responsive switch: use 2 cols at >= 992px
+  const isWide = typeof window !== "undefined" ? window.innerWidth >= 992 : true;
+
   return (
-    <div className="min-vh-100 bg-light d-flex align-items-center">
-      <div className="container" style={{ maxWidth: 900 }}>
-        {/* Application Name Banner */}
-        <h1 className="display-6 text-center mb-4">{appName}</h1>
+    <main style={pageStyle}>
+      <form onSubmit={handleSubmit} style={bigBox}>
+        <div style={isWide ? gridLg : grid}>
+          {/* LEFT: Business name & code */}
+          <section>
+            <h4 className="mb-3">New Business</h4>
 
-        <div className="card shadow-sm border-0">
-          <div className="card-body p-4 p-md-5">
-            <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">
+                Name <span className="text-danger">*</span>
+              </label>
+              <input
+                className="form-control"
+                placeholder="e.g., Pacific Poke & Grill"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+              />
+            </div>
 
-              {/* Top Row: New Business + Link Business */}
-              <div className="row g-3 align-items-end">
-                <div className="col-md-8">
-                  <label className="form-label fw-semibold">
-                    New Business <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    placeholder="Business Name"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    disabled={!!linkCode.trim()}
-                  />
-                  <div className="form-text">Enter a name to create a new business.</div>
-                </div>
+            <div className="mb-3">
+              <label className="form-label">Business Code (optional)</label>
+              <input
+                className="form-control"
+                placeholder="Internal code"
+                value={businessCode}
+                onChange={(e) => setBusinessCode(e.target.value)}
+              />
+            </div>
+          </section>
 
-                <div className="col-md-4">
-                  <label className="form-label fw-semibold">Or Link a Business</label>
-                  <div className="input-group">
-                    <input
-                      className="form-control"
-                      type="text"
-                      placeholder="Linking Code"
-                      value={linkCode}
-                      onChange={(e) => setLinkCode(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-outline-secondary"
-                      type="button"
-                      onClick={() => !disabledSubmit && handleSubmit(new Event("submit"))}
-                      disabled={!linkCode.trim() || submitting}
-                      title="Link"
-                    >
-                      →
-                    </button>
-                  </div>
-                  <div className="form-text">Have a code? Link to an existing business.</div>
-                </div>
-              </div>
+          {/* RIGHT: Hours of Operation */}
+          <aside>
+            <h4 className="mb-3">Hours of Operation</h4>
 
-              {/* Optional internal Business Code when creating */}
-              <div className="row g-3 mt-3">
-                <div className="col-md-6">
-                  <label className="form-label">Business Code (optional)</label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    placeholder="Internal code for your business"
-                    value={businessCode}
-                    onChange={(e) => setBusinessCode(e.target.value)}
-                    disabled={!!linkCode.trim()}
-                  />
-                </div>
-              </div>
+            <div className="table-responsive">
+              <table className="table table-bordered align-middle mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>Day</th>
+                    <th className="text-center">Open</th>
+                    <th className="text-center">Close</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hours.map((d, i) => (
+                    <tr key={d.day}>
+                      <td>
+                        <div className="form-check">
+                          <input
+                            id={`day-${d.day}`}
+                            className="form-check-input me-2"
+                            type="checkbox"
+                            checked={d.enabled}
+                            onChange={(e) => onToggleDay(i, e.target.checked)}
+                          />
+                          <label className="form-check-label" htmlFor={`day-${d.day}`}>
+                            {d.day}
+                          </label>
+                        </div>
+                      </td>
 
-              {/* Hours of Operation */}
-              <h5 className="fw-bold mt-4 mb-3">Hours of Operation</h5>
-              <div className="table-responsive">
-                <table className="table table-bordered align-middle mb-0">
-                  <thead className="table-light">
-                    <tr>
-                      <th>Day</th>
-                      <th className="text-center" style={{ width: 240 }}>Open (HH:MM)</th>
-                      <th className="text-center" style={{ width: 240 }}>Close (HH:MM)</th>
+                      {/* Open */}
+                      <td>
+                        <div className="d-flex align-items-center gap-2 justify-content-center">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            className="form-control"
+                            placeholder="HH"
+                            maxLength={2}
+                            value={d.open12}
+                            onChange={(e) => onTimeChange(i, "open12", e.target.value)}
+                            disabled={!d.enabled}
+                            style={{ maxWidth: 72 }}
+                          />
+                          <span>:</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            className="form-control"
+                            placeholder="MM"
+                            maxLength={2}
+                            value={d.openMM}
+                            onChange={(e) => onTimeChange(i, "openMM", e.target.value)}
+                            disabled={!d.enabled}
+                            style={{ maxWidth: 72 }}
+                          />
+                          <select
+                            className="form-select"
+                            value={d.openMer}
+                            onChange={(e) => onMerChange(i, "openMer", e.target.value)}
+                            disabled={!d.enabled}
+                            style={{ maxWidth: 88 }}
+                          >
+                            <option>AM</option>
+                            <option>PM</option>
+                          </select>
+                        </div>
+                      </td>
+
+                      {/* Close */}
+                      <td>
+                        <div className="d-flex align-items-center gap-2 justify-content-center">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            className="form-control"
+                            placeholder="HH"
+                            maxLength={2}
+                            value={d.close12}
+                            onChange={(e) => onTimeChange(i, "close12", e.target.value)}
+                            disabled={!d.enabled}
+                            style={{ maxWidth: 72 }}
+                          />
+                          <span>:</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            className="form-control"
+                            placeholder="MM"
+                            maxLength={2}
+                            value={d.closeMM}
+                            onChange={(e) => onTimeChange(i, "closeMM", e.target.value)}
+                            disabled={!d.enabled}
+                            style={{ maxWidth: 72 }}
+                          />
+                          <select
+                            className="form-select"
+                            value={d.closeMer}
+                            onChange={(e) => onMerChange(i, "closeMer", e.target.value)}
+                            disabled={!d.enabled}
+                            style={{ maxWidth: 88 }}
+                          >
+                            <option>AM</option>
+                            <option>PM</option>
+                          </select>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {hours.map((d, i) => (
-                      <tr key={d.day}>
-                        <td>
-                          <div className="form-check">
-                            <input
-                              id={`day-${d.day}`}
-                              className="form-check-input me-2"
-                              type="checkbox"
-                              checked={d.enabled}
-                              onChange={(e) => onToggleDay(i, e.target.checked)}
-                              disabled={!!linkCode.trim()}
-                            />
-                            <label className="form-check-label" htmlFor={`day-${d.day}`}>
-                              {d.day}
-                            </label>
-                          </div>
-                        </td>
-
-                        <td>
-                          <div className="d-flex align-items-center gap-2">
-                            <input
-                              type="number"
-                              className="form-control"
-                              placeholder="HH"
-                              min={0}
-                              max={23}
-                              value={d.openHH}
-                              onChange={(e) => onTimeChange(i, "openHH", e.target.value)}
-                              disabled={!d.enabled || !!linkCode.trim()}
-                            />
-                            <span className="fs-5">:</span>
-                            <input
-                              type="number"
-                              className="form-control"
-                              placeholder="MM"
-                              min={0}
-                              max={59}
-                              value={d.openMM}
-                              onChange={(e) => onTimeChange(i, "openMM", e.target.value)}
-                              disabled={!d.enabled || !!linkCode.trim()}
-                            />
-                          </div>
-                        </td>
-
-                        <td>
-                          <div className="d-flex align-items-center gap-2">
-                            <input
-                              type="number"
-                              className="form-control"
-                              placeholder="HH"
-                              min={0}
-                              max={23}
-                              value={d.closeHH}
-                              onChange={(e) => onTimeChange(i, "closeHH", e.target.value)}
-                              disabled={!d.enabled || !!linkCode.trim()}
-                            />
-                            <span className="fs-5">:</span>
-                            <input
-                              type="number"
-                              className="form-control"
-                              placeholder="MM"
-                              min={0}
-                              max={59}
-                              value={d.closeMM}
-                              onChange={(e) => onTimeChange(i, "closeMM", e.target.value)}
-                              disabled={!d.enabled || !!linkCode.trim()}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Errors */}
-              {error && <div className="alert alert-danger mt-3 mb-0">{error}</div>}
-
-              {/* Submit */}
-              <div className="text-end mt-4">
-                <button
-                  type="submit"
-                  className="btn btn-primary px-4"
-                  disabled={disabledSubmit || submitting}
-                  title="Continue"
-                >
-                  {submitting ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" />
-                      Saving…
-                    </>
-                  ) : (
-                    "Continue →"
-                  )}
-                </button>
-              </div>
-
-            </form>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </aside>
         </div>
-      </div>
-    </div>
+
+        {/* Errors + Submit */}
+        {error && <div className="alert alert-danger mt-3">{error}</div>}
+        <div className="text-end mt-3">
+          <button
+            type="submit"
+            className="btn btn-primary px-4"
+            disabled={disabledSubmit || submitting}
+            title="Continue"
+          >
+            {submitting ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" />
+                Saving…
+              </>
+            ) : (
+              "Continue →"
+            )}
+          </button>
+        </div>
+      </form>
+    </main>
   );
 }
