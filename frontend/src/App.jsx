@@ -11,6 +11,9 @@ function App() {
         {/* Default route */}
         <Route path="/" element={<Login />} />
 
+        {/* Login route */}
+        <Route path="/login" element={<Login />} />
+
         {/* Signup page */}
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/create-business" element={<CreateBusiness />} />
