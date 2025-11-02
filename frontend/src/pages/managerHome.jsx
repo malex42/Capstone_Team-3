@@ -11,12 +11,16 @@ import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
 import { getHomePage, getBusinessCode } from '@/lib/api';
+import { useNavigate } from "react-router-dom";
+
 
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
 export default function ManagerHome() {
+
+  const navigate = useNavigate();
   const [businessName, setBusinessName] = useState('-');
   const businessCode = getBusinessCode();
   const [events, setEvents] = useState([]);
@@ -196,7 +200,6 @@ useEffect(() => {
   return (
     <div style={styles.root} className="home-container justify-content-start">
       <style>{`
-        /* Scoped overrides for manager calendar weekday labels and headers */
         .manager-calendar .rbc-header {
           color: #222 !important;
           background: transparent !important;
@@ -267,7 +270,10 @@ useEffect(() => {
               </div>
             </div>
 
-            <div style={{ ...styles.navItem }}>
+            <div
+                style={{ ...styles.navItem }}
+                onClick={() => navigate("/schedules")}
+            >
               <img style={styles.navIcon} src="/img/calenderIcon.png" alt="Schedules" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666'  }}>Schedules</div>
