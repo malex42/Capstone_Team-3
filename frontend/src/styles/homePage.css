@@ -21,6 +21,7 @@ img{
 
 .home-header h1 {
   margin-top: 0;
+  color: black
 }
 
 .content-wrapper {
@@ -84,3 +85,4 @@ img{
   border: none;
   padding: 0;
 }
+

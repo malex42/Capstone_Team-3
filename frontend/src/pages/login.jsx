@@ -1,13 +1,17 @@
 import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '/css/style.css'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { jwtDecode } from 'jwt-decode'
 import { loginUser, saveToken } from '@/lib/api'
 
 
 
+//import { postJSON } from './lib/api'
+
+
+
 export default function Login() {
-  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,20 +22,50 @@ export default function Login() {
   const toggleShowPassword = () => setShowPassword(s => !s)
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  e.preventDefault()
+  setError('')
+  setLoading(true)
 
-    try {
-      const res = await loginUser({ username, password })
-      if (res?.JWT) saveToken(res.JWT)
-      navigate('/')
-    } catch (err) {
-      setError(err.message || 'Login failed')
-    } finally {
-      setLoading(false)
+  try {
+    const payload = { username, password }
+    const res = await loginUser(payload)
+
+    console.log('Login response:', res); // <-- log the full response
+
+
+    if (res?.JWT) {
+      saveToken(res.JWT)
+
+      // decode token for role-based routing
+      const decoded = jwtDecode(res.JWT)
+      const userRole = decoded.role
+      const businessCode = decoded.code
+
+      // redirect based on role
+      if (userRole === 'MANAGER' || userRole == 'manager'){
+          if (businessCode != null && businessCode != ''){
+              window.location.href = '/manager-home'
+              console.log(businessCode)
+
+              }
+          else {
+              window.location.href = '/create-business'
+              }
+      } else if (userRole === 'EMPLOYEE' || userRole == 'employee') {
+        window.location.href = '/employee-home'
+      } else {
+          throw new Error('Login Failed')
     }
+
+    } else {
+      throw new Error('Invalid response from server')
+    }
+  } catch (err) {
+    setError(err.message || 'Login failed')
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     
