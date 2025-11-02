@@ -1,0 +1,131 @@
+/* Page */
+.min-vh-100.bg-light { background: linear-gradient(180deg, #f7f8fb 0%, #eef1f6 100%); }
+
+/* Card polish */
+.card {
+  border-radius: 18px !important;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, .08) !important;
+}
+.card-body { padding: clamp(20px, 3vw, 40px) !important; }
+
+/* Section titles */
+h5.fw-bold { margin-top: 1.5rem; }
+
+/* Segmented control for Create/Link */
+.segmented {
+  display: inline-flex; border: 1px solid #d0d5dd; border-radius: 999px; padding: 4px; gap: 4px;
+  background: #fff;
+}
+.segmented button {
+  border: 0; background: transparent; padding: 8px 14px; border-radius: 999px; font-weight: 600;
+}
+.segmented button.active { background: #1b62ff; color: #fff; box-shadow: 0 1px 2px rgba(27,98,255,.25); }
+
+/* Hours grid */
+.hours-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .hours-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1100px) {
+  .hours-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.hour-card {
+  border: 1px solid #e4e7ec; border-radius: 14px; background: #fff;
+  padding: 12px 14px; display: grid; grid-template-columns: 1fr; gap: 10px;
+}
+.hour-card.disabled { opacity: .55; }
+
+/* Day header row */
+.day-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.day-row .day-name { font-weight: 600; }
+
+/* Time inputs */
+.time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.time-group { display: flex; align-items: center; gap: 6px; }
+
+.time-input {
+  width: 64px; text-align: center;
+  border: 1px solid #d0d5dd; border-radius: 10px; padding: 8px 6px; font-variant-numeric: tabular-nums;
+  box-shadow: 0 1px 0 rgba(16,24,40,.02);
+}
+.time-input:focus { outline: none; border-color: #1b62ff; box-shadow: 0 0 0 4px rgba(27,98,255,.12); }
+
+.time-colon { font-size: 20px; line-height: 1; margin: 0 2px; user-select: none; }
+
+/* Helpers row above grid */
+.hours-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.hours-actions .btn { border-radius: 999px; }
+
+/* Sticky submit area on wide screens */
+@media (min-width: 768px) {
+  .submit-bar { display: flex; justify-content: flex-end; }
+}
+/* Two-panel layout polish */
+@media (min-width: 992px) { /* lg+ */
+  .pane-right-sticky {
+    position: sticky;
+    top: 16px;          /* distance from top when scrolling */
+    max-height: calc(100vh - 32px);
+    overflow: auto;     /* scroll just the hours pane if long */
+  }
+}
+
+/* Tighten the hours table a bit */
+.hours-table .form-control {
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+.hours-table thead th { white-space: nowrap; }
+/* Page width + rhythm */
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(16px, 3vw, 32px);
+}
+
+/* Two-pane grid: stacks on mobile, 420px left on desktop */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+}
+@media (min-width: 992px) {
+  .layout { grid-template-columns: 420px 1fr; gap: 32px; }
+}
+
+/* Card */
+.panel {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(16,24,40,.08);
+  padding: clamp(16px, 2.4vw, 28px);
+}
+
+/* Segmented control */
+.segmented {
+  display: inline-flex; gap: 6px; padding: 4px;
+  border: 1px solid #d0d5dd; border-radius: 999px; background: #fff;
+}
+.segmented button { border: 0; padding: 8px 14px; border-radius: 999px; font-weight: 600; background: transparent; }
+.segmented .active { background: #1b62ff; color: #fff; }
+
+/* Form bits */
+.field { margin-bottom: 16px; }
+.field label { font-weight: 600; margin-bottom: 6px; }
+.actions { margin-top: 20px; }
+
+/* Hours table compact */
+.hours thead th { white-space: nowrap; }
+.hours .form-control { border-radius: 10px; padding: 6px 8px; }
+
+/* Make hours pane sticky on desktop */
+@media (min-width: 992px) {
+  .sticky { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+}
+
+
