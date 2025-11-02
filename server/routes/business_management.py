@@ -59,11 +59,6 @@ def get_all_employees_endpoint():
         return jsonify({"message": "Business code not found in token"}), 400
 
     try:
-        # Get business_code from claims
-        business_code = claims.get('business_code')
-
-        if not business_code:
-            return jsonify({"message": "Business code not found in token"}), 400
 
         # Call the business handler to get all employees
         employees = g.business_handler.get_all_employees(business_code)
