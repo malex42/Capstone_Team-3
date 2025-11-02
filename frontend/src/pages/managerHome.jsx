@@ -23,7 +23,7 @@ export default function ManagerHome() {
       <div className="home-header mb-4">
         <h1>Good Work</h1>
       </div>
-      <p>Bussince code</p>
+      <p>Business code</p>
       <div className="content-wrapper">
         <nav className="vertical-navbar">
           <button type="button" className="btn mb-3 d-flex flex-column align-items-center" disabled>
