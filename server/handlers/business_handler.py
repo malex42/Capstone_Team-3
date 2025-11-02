@@ -1,8 +1,10 @@
 from datetime import datetime
 
 import pymongo
+from bson import ObjectId
 from pymongo import errors
 
+from handlers.account_handler import AccountHandler
 from handlers.db_handler import DatabaseHandler
 from handlers.exceptions.exceptions import BusinessAlreadyExistsError
 from handlers.validation_handler import ValidationHandler
@@ -18,6 +20,9 @@ class BusinessHandler:
         #Stores the database reference
         self.db = db
 
+        # Users collection
+        self.users_collection = self.db["Users"]
+
         # Initialize database for business management -
         # Create 'Businesses' Collection if it does not already exist
         if "Businesses" not in db.list_collection_names():
@@ -26,7 +31,7 @@ class BusinessHandler:
         self.business_collection = db["Businesses"]
 
         # Ensure unique field 'business_name' exists
-        self.business_collection.create_index([("business_name", 1)], unique=True)
+        self.business_collection.create_index([("business_name", 1)], unique=False)
 
         # Ensure field 'hours' exists
         self.business_collection.create_index([("hours", 1)], unique=False)
@@ -41,7 +46,7 @@ class BusinessHandler:
         self.business_collection.create_index([("created_dt", 1)], unique=False)
 
         # Ensure field 'schedules' exists
-        self.business_collection.create_index([("schedules", 1)], unique=True)
+        self.business_collection.create_index([("schedules", 1)], unique=False)
 
         # Ensure field 'employees' exists
         self.business_collection.create_index([("employees", 1)], unique=False)
@@ -60,13 +65,14 @@ class BusinessHandler:
         self.business_collection.insert_one(business_dict)
 
     def _insert_user(self, business: dict, user_id: str):
-        pass
-        # TODO, insert user's id into the "people" list in the business (append, not replace)
-        # User ID, not username
-
         self.business_collection.update_one(
             {"_id": business["_id"]},
             {"$addToSet": {"employees": user_id}}
+        )
+
+        self.users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": {"business_code": business["code"]}}
         )
         return True
 
@@ -81,6 +87,7 @@ class BusinessHandler:
             try:
                 # Insert new business document into the DB
                 self._insert_business(business_name, hours, user_id, business_code)
+                self.insert_user(code=business_code, user_id=user_id)
                 return business_code
 
             except pymongo.errors.DuplicateKeyError:
@@ -91,24 +98,27 @@ class BusinessHandler:
 
 
 
-    def insert_user(self, code, username):
-        pass
-        # TODO 1. find business by the code (+ensure exists)
+    def insert_user(self, code: str, username: str = None, user_id: str = None):
+        if not username and not user_id:
+            raise ValueError("User Info not given")
+
         business = self.business_collection.find_one({"code": code})
         if not business:
             raise ValueError("Business not found")
 
-        # 2. get user_id from username (may need to pass in account handler instance)
-        users_collection = self.db["Users"]
-        user = users_collection.find_one({"username": username})
+        if username:
+            user = self.users_collection.find_one({"username": username})
 
-        if not user:
-            raise ValueError("User could not be found")
+            if not user:
+                raise ValueError("User could not be found")
 
-        user_id = str(user.get('_id'))
+            user_id = str(user.get('_id'))
 
         if not user_id:
             raise ValueError("Invalid user ID")
 
-        # 3. use _insert_user to update the DB
         return self._insert_user(business, user_id)
+
+
+    def get_business_from_code(self, code: str):
+        return self.business_collection.find_one({"code": code})

@@ -30,22 +30,32 @@ export default function Login() {
     const payload = { username, password }
     const res = await loginUser(payload)
 
+    console.log('Login response:', res); // <-- log the full response
+
+
     if (res?.JWT) {
       saveToken(res.JWT)
 
       // decode token for role-based routing
       const decoded = jwtDecode(res.JWT)
-      const userRole = decoded.role || decoded.roles || decoded.userRole
+      const userRole = decoded.role
+      const businessCode = decoded.code
+
       // redirect based on role
-      if (userRole === 'manager') {
-        window.location.href = '/manager-home'
-      } else if (userRole === 'EMPLOYEE') {
+      if (userRole === 'MANAGER' || userRole == 'manager'){
+          if (businessCode != null && businessCode != ''){
+              window.location.href = '/manager-home'
+              console.log(businessCode)
+
+              }
+          else {
+              window.location.href = '/create-business'
+              }
+      } else if (userRole === 'EMPLOYEE' || userRole == 'employee') {
         window.location.href = '/employee-home'
       } else {
-          console.log(userRole)
-
-        window.location.href = '/'
-      }
+          throw new Error('Login Failed')
+    }
 
     } else {
       throw new Error('Invalid response from server')

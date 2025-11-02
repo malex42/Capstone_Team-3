@@ -6,6 +6,9 @@ from handlers.validation_handler import is_authorized
 from tools import jsonify_keys
 
 
+
+
+
 def new_schedule_endpoint():
     """ Endpoint to create a new schedule """
     data = request.get_json()

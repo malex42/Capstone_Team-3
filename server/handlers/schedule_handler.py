@@ -68,6 +68,10 @@ class ScheduleHandler:
         schedules = list(self.schedules_collection.find({'business_code': business_code}))
         return schedules
 
+    def get_schedule_for_month(self, business_code: str, month: int):
+        schedules = self.schedules_collection.find_one({'business_code': business_code, 'month': month})
+        return schedules
+
     def add_shift(self, schedule_id: str, shift: dict):
 
         required_keys = ['employee_id', 'start', 'end']
