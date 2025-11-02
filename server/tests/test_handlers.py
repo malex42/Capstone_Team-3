@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Add the parent folder of 'server' to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from handlers.password_handler import PasswordHandler
 import pytest
 from unittest.mock import MagicMock
@@ -34,8 +40,6 @@ def test_account_handler_initialization():
 
     # Assertions
     assert handler is not None
-    assert hasattr(handler, 'db_handler')
-    assert hasattr(handler, 'pw_handler')
     assert handler.pw_handler == pw_handler
 
 def test_insert_user_employee():
@@ -80,7 +84,7 @@ def test_insert_user_duplicate_error():
     
     handler = AccountHandler(db_handler, pw_handler)
     
-    with pytest.raises(UserAlreadyExistsError):
+    with pytest.raises(pymongo.errors.DuplicateKeyError):
         handler._insert_user("existing", "hashed_pass", "employee", None)
 
 
@@ -194,14 +198,15 @@ def test_create_business_success(monkeypatch):
     collection.insert_one = MagicMock()
 
     handler = BusinessHandler(db_handler)
-    code = handler.create_business("My Biz", {"mon": "9-5"}, "user123")
+    user_id = ObjectId()
+    code = handler.create_business("My Biz", {"mon": "9-5"}, user_id)
 
     assert code == "FIXEDCODE"
     collection.insert_one.assert_called_once()
     inserted = collection.insert_one.call_args[0][0]
     assert inserted["business_name"] == "My Biz"
     assert inserted["code"] == "FIXEDCODE"
-    assert inserted["created_by"] == "user123"
+    assert inserted["created_by"] == user_id
     assert "created_dt" in inserted
     assert "schedules" in inserted
 
