@@ -144,7 +144,7 @@ class BusinessHandler:
 
     def get_all_employees(self, business_code: str):
         """ Get all employees by business code """
-        employees = self.employees_collection.find({"business_code": business_code})
+        employees = self.employees_collection.find({"business_code": business_code}).sort("username",1)
 
         return [
             {
