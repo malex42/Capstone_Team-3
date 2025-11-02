@@ -12,6 +12,8 @@ class ScheduleHandler:
         """ Initializes the ScheduleHandler with database connection """
         db = db_handler.database
 
+        self.users_collection = db["Users"]
+
         # Initialize database for schedule management -
         # Create 'Schedules' Collection if it does not already exist
         if "Schedules" not in db.list_collection_names():
@@ -20,7 +22,7 @@ class ScheduleHandler:
         self.schedules_collection = db["Schedules"]
 
         # Ensure field 'year' exists
-        self.schedules_collection.create_index([("year", 1)], unique=True)
+        self.schedules_collection.create_index([("year", 1)], unique=False)
 
         # Ensure field 'month' exists
         self.schedules_collection.create_index([("month", 1)], unique=False)
@@ -82,6 +84,11 @@ class ScheduleHandler:
 
         # Add a unique _id field to the shift
         shift.update({'_id': str(ObjectId())})
+
+        username = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['username']
+
+        # Add employee name field to the shift
+        shift.update({'employee_name': username})
 
         if self._insert_shift(schedule_id=schedule_id, shift=shift):
             return True

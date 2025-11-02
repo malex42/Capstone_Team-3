@@ -93,7 +93,7 @@ useEffect(() => {
         if (isNaN(end)) end = new Date(start.getTime() + 60 * 60 * 1000);
         return {
           id: s._id || idx,
-          title: `Shift • ${String(s.employee_id ?? '').slice(0, 10)}`,
+          title: `• ${String(s.employee_name ?? '').slice(0, 10)} •`,
           start,
           end,
           allDay: false,
