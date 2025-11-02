@@ -13,6 +13,8 @@
 
 This repository contains the Good Work project, a schedule management tool.
 
+[Development Checkpoint](https://drive.google.com/file/d/1QzeCOtltIzfKdbi686uevLsWuRAjR_bg/view?usp=drive_link)
+
 Follow the instructions below to set up and run the application.
 
 ## Setup Instructions
