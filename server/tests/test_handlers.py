@@ -15,21 +15,28 @@ from handlers.exceptions.exceptions import UserAlreadyExistsError, PasswordForma
 
 # account_handler.py
 def test_account_handler_initialization():
+    # Mock the database
     db = MagicMock()
     db.list_collection_names.return_value = []
     collection = MagicMock()
     db.__getitem__.return_value = collection
     db.create_collection = MagicMock()
-    
-    db_handler = MagicMock(database=db)
+
+    # Properly mock the db_handler with a database attribute
+    db_handler = MagicMock()
+    db_handler.database = db  # explicitly set the attribute
+
+    # Real or mocked password handler
     pw_handler = PasswordHandler()
-    
+
+    # Create AccountHandler
     handler = AccountHandler(db_handler, pw_handler)
-    
-    # Only check that the handler was created successfully
+
+    # Assertions
     assert handler is not None
-    assert hasattr(handler, '_db_handler')
-    assert hasattr(handler, '_pw_handler')
+    assert hasattr(handler, 'db_handler')
+    assert hasattr(handler, 'pw_handler')
+    assert handler.pw_handler == pw_handler
 
 def test_insert_user_employee():
     db, collection = make_db_and_collection(has_business_collection=True)
