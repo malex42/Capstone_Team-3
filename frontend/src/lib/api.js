@@ -50,7 +50,7 @@ export function getToken() {
   try { return localStorage.getItem('JWT'); } catch { return null; }
 }
 
-export function addCodeToToken(code ) {
+export function addCodeToToken(code) {
 const token = getToken();
   if (!token) return null;
 }
@@ -67,6 +67,20 @@ export function getBusinessCode() {
     return null;
   }
 }
+
+export function getEmployeeID() {
+  const token = getToken();
+  if (!token) return null;
+
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.user_id || null;
+  } catch (error) {
+    console.error("Invalid token:", error);
+    return null;
+  }
+}
+
 
 // ---- API calls aligned to your Flask routes ----
 export function createUser({ username, password, role, code }) {

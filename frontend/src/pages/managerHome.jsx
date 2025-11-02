@@ -91,9 +91,13 @@ useEffect(() => {
         let end = s.end ? new Date(s.end) : new Date(start.getTime() + 60 * 60 * 1000);
         if (isNaN(start)) start = new Date();
         if (isNaN(end)) end = new Date(start.getTime() + 60 * 60 * 1000);
+
+        const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const formattedEnd = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
         return {
           id: s._id || idx,
-          title: `• ${String(s.employee_name ?? '').slice(0, 10)} •`,
+          title: `${String(s.employee_name ?? '').slice(0, 10).toUpperCase()}: ${String(formattedStart)} - ${String(formattedStart)}`,
           start,
           end,
           allDay: false,
