@@ -1,5 +1,5 @@
 from flask import request, jsonify, g
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, \
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, \
     set_access_cookies
 from handlers.exceptions.exceptions import PasswordFormatError, UserAlreadyExistsError
 from handlers.enums.roles import Role
@@ -89,33 +89,3 @@ def login_endpoint():
     return jsonify({"message": "Invalid username or password"}), 401
 
 
-@jwt_required()
-def expired_endpoint():
-    """ Example of an expired endpoint that requires a valid JWT """
-
-    username = get_jwt_identity()
-    claims = get_jwt()
-
-    return jsonify({
-        "message": f"Hello {username}",
-        "role": claims.get('role'),
-        "code": claims.get('code')
-    }), 200
-
-@jwt_required(refresh=True)
-def refresh_token_endpoint():
-    username = get_jwt_identity()
-    user = g.account_handler.find_user_by_name(username)
-    role = user['role']
-    code = user.get('business_code', None)
-
-    new_access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code})
-
-    decoded = pyjwt.decode(new_access_token, options={"verify_signature": False})
-    exp_time = datetime.fromtimestamp(decoded.get('exp'))
-
-    return jsonify({
-        "access_token": new_access_token,
-        "message": "Access token refreshed",
-        "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S")
-    }), 200

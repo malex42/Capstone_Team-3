@@ -122,7 +122,6 @@ class AccountHandler:
         return False
 
 
-
     # def delete_user(self, input_username: str, input_password: str) -> bool:
     #     """ Delete a user's account after validating their login credentials. """
     #     if self.validate_login(input_username, input_password):

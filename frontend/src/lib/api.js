@@ -1,6 +1,22 @@
-// src/lib/api.js
+import { jwtDecode } from 'jwt-decode'
 
-// Generic request helper
+
+//export async function request(path, { method = 'GET', body, headers } = {}) {
+//  const data = await fetch(path, {
+//    method,
+//    headers: { 'Content-Type': 'application/json', ...(headers || {}) },
+//    body: body ? JSON.stringify(body) : undefined,
+//    credentials: 'include',
+//  });
+//
+//  if (!data.ok) {
+//    const msg = data?.message || `HTTP ${data.status}`;
+//    throw new Error(msg);
+//  }
+// console.log(data)
+//  return data;
+//}
+
 export async function request(path, { method = 'GET', body, headers } = {}) {
   const res = await fetch(path, {
     method,
@@ -26,43 +42,74 @@ export async function request(path, { method = 'GET', body, headers } = {}) {
   return data;
 }
 
-// Token helpers
-export function saveToken(token) {
-  localStorage.setItem('jwt', token);
+export function saveToken(jwt) {
+  try { localStorage.setItem('JWT', jwt); } catch {}
 }
 
 export function getToken() {
-  return localStorage.getItem('jwt');
+  try { return localStorage.getItem('JWT'); } catch { return null; }
 }
 
-export function clearToken() {
-  localStorage.removeItem('jwt');
+export function addCodeToToken(code) {
+const token = getToken();
+  if (!token) return null;
 }
 
-// API calls
+export function getBusinessCode() {
+  const token = getToken();
+  if (!token) return null;
+
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.code || null;
+  } catch (error) {
+    console.error("Invalid token:", error);
+    return null;
+  }
+}
+
+export function getEmployeeID() {
+  const token = getToken();
+  if (!token) return null;
+
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.user_id || null;
+  } catch (error) {
+    console.error("Invalid token:", error);
+    return null;
+  }
+}
+
+
+// ---- API calls aligned to your Flask routes ----
 export function createUser({ username, password, role, code }) {
-  // This hits Flask's register()
   return request('/api/auth/register', {
     method: 'POST',
     body: { username, password, role, ...(code ? { code } : {}) },
   });
 }
 
-export function login({ username, password }) {
+export function loginUser({ username, password }) {
   return request('/api/auth/login', {
     method: 'POST',
     body: { username, password },
   });
 }
 
-export function authenticatedRequest(path, options = {}) {
+
+// For any authed call
+export function authenticatedRequest(path, opts = {}) {
   const token = getToken();
-  if (!token) throw new Error('No auth token found');
   return request(path, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
+    ...opts,
+    headers: { Authorization: token ? `Bearer ${token}` : undefined, ...(opts.headers || {}) },
+  });
+}
+
+
+export function getHomePage() {
+  return authenticatedRequest('/api/home', {
+    method: 'GET',
   });
 }
