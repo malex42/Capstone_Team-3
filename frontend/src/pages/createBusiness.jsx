@@ -132,14 +132,15 @@ export default function CreateBusiness() {
 
     setSubmitting(true);
     try {
-      data = await authenticatedRequest("/api/link_business", {
+      const data = await authenticatedRequest("/api/link_business", {
         method: "POST",
         body: { code: businessCode.trim() },
       });
-      localStorage.setItem("businessCode", businessCode.trim());
       if (data?.JWT) {
           saveToken(data.JWT)
           }
+      localStorage.setItem("businessCode", businessCode.trim());
+
       navigate("/manager-home");
     } catch (err) {
       setError(err?.message || "Failed to link business.");

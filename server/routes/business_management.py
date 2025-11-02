@@ -50,17 +50,11 @@ def create_business_endpoint():
 
 
 def link_business_endpoint():
-    """ Endpoint to create a new business """
     data = request.get_json()
-
-    # JWT check
     verify_jwt_in_request()
-
-    # Get the claims from the JWT token
     claims = get_jwt()
 
-    # Role enforcement check
-    auth_check = is_authorized(claims, [Role.MANAGER])
+    auth_check = is_authorized(claims, [Role.MANAGER, Role.EMPLOYEE])
     if auth_check:
         return auth_check
 
@@ -70,26 +64,30 @@ def link_business_endpoint():
     business_code = data['code']
     username = get_jwt_identity()
 
-    if not username:
-        return jsonify({"message": "Invalid username"}), 400
-
     try:
         business_key = g.business_handler.insert_user(business_code, username)
 
-        if business_key:
-            if g.account_handler.update_business_code(code=business_code, username=username):
-
-                # Create new JWT token
-                access_token = create_access_token(identity=username, additional_claims={"role": claims["role"],
-                                                                                         "code": business_code,
-                                                                                         "user_id": claims["user_id"]})
-                set_access_cookies(response=jsonify({"msg": "code linking successful"}), encoded_access_token=access_token)
-
-                return jsonify({"message": "success", 'JWT': access_token}), 200
-
-        else:
+        if not business_key:
             return jsonify({"message": "failure"}), 400
-    except ValidationError as e:
+
+        if not g.business_handler.insert_user(code=business_code, username=username):
+            return jsonify({"message": "Could not update business code"}), 400
+
+        access_token = create_access_token(
+            identity=username,
+            additional_claims={
+                "role": claims["role"],
+                "code": business_code,
+                "user_id": claims["user_id"]
+            }
+        )
+
+        response = jsonify({"message": "success", "JWT": access_token})
+        set_access_cookies(response=response, encoded_access_token=access_token)
+
+        return response, 200
+
+    except ValueError as e:
         return jsonify({"message": str(e)}), 404
 
 

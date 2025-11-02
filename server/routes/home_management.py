@@ -15,8 +15,6 @@ def populate_home_endpoint():
     # Get the claims from the JWT token
     claims = get_jwt()
 
-    print(claims)
-
     # Role enforcement check
     auth_check = is_authorized(claims, [Role.MANAGER, Role.EMPLOYEE])
     if auth_check:

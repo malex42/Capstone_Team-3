@@ -10,15 +10,19 @@ import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
-import { getHomePage, getBusinessCode, getEmployeeID } from '@/lib/api';
+import { getHomePage, getBusinessCode, getEmployeeID, authenticatedRequest, saveToken } from '@/lib/api';
 
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-export default function ManagerHome() {
+export default function EmployeeHome() {
   const [businessName, setBusinessName] = useState('-');
-  const businessCode = getBusinessCode();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [businessCode, setBusinessCode] = useState(getBusinessCode() || '');
+  const [businessCodeInput, setBusinessCodeInput] = useState('');
+
   const employeeID = getEmployeeID();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,35 @@ export default function ManagerHome() {
   // wide layout: separate width/height states
   const [calendarWidth, setCalendarWidth] = useState(1000);
   const [calendarHeight, setCalendarHeight] = useState(520);
+
+  const handleLinkBusiness = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!businessCodeInput.trim()) {
+      setError("Please enter a business code to link.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+        const data = await authenticatedRequest("/api/link_business", {
+        method: "POST",
+        body: { code: businessCodeInput.trim() },
+      });
+      if (data?.JWT) {
+          saveToken(data.JWT)
+          }
+      setBusinessCode(businessCodeInput.trim());
+      localStorage.setItem("businessCode", businessCode.trim());
+
+      navigate("/manager-home");
+    } catch (err) {
+      setError(err?.message || "Failed to link business.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     // load code fallback
@@ -308,17 +341,59 @@ useEffect(() => {
           {loading && <div style={{ marginTop: 12, color: '#666', fontSize: 13 }}>Loading shifts…</div>}
         </aside>
 
-        <main style={styles.calendarContainer}>
-          <div style={styles.calendarCard}>
-            <div style={styles.calendarHeader}>
-              <div>
-                <div style={styles.monthLabel}>{format(today, 'LLLL yyyy', { locale: enUS })}</div>
-              </div>
-              <div style={{ color: '#666', fontSize: 13, alignSelf: 'flex-end' }} />
-            </div>
+<main style={styles.calendarContainer}>
+  <div style={styles.calendarCard}>
+    {(!businessCode || businessCode === '') ? (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          paddingTop: 40,
+          gap: 16,
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ fontSize: 18, fontWeight: 600, color: '#222' }}>
+          No business linked, connect with a code
+        </div>
 
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <>
+        <form onSubmit={handleLinkBusiness} style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="text"
+            value={businessCodeInput}
+            onChange={(e) => setBusinessCodeInput(e.target.value)}
+            placeholder="Enter business code"
+            style={{
+              padding: '8px 12px',
+              borderRadius: 8,
+              border: '1px solid #ccc',
+              width: 220,
+              fontSize: 14,
+              backgroundColor: 'white',
+              color: '#222',
+            }}
+          />
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: 'none',
+              background: '#007bff',
+              color: 'white',
+              fontWeight: 500,
+            }}
+          >
+            Link
+          </button>
+        </form>
+
+        {error && <div style={{ marginTop: 8, color: 'red', fontSize: 13 }}>{error}</div>}
+      </div>
+    ) : (
+      <div style={{ flex: 1, minHeight: 0 }}>
                 <style>{`
                   /* Day numbers */
                   .manager-calendar .rbc-month-view .rbc-date-cell {
@@ -352,28 +427,27 @@ useEffect(() => {
                     padding-bottom: 6px !important;
                   }
                 `}</style>
+        <BigCalendar
+          className="manager-calendar"
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          defaultView="month"
+          views={['month']}
+          date={today}
+          toolbar={false}
+          onNavigate={() => {}}
+          onDrillDown={() => {}}
+          style={{ width: '100%', height: '100%' }}
+          popup
+          selectable={false}
+        />
+      </div>
+    )}
+  </div>
+</main>
 
-                <BigCalendar
-                  className="manager-calendar"
-                  localizer={localizer}
-                  events={events}
-                  startAccessor="start"
-                  endAccessor="end"
-                  defaultView="month"
-                  views={['month']}
-                  date={today}
-                  toolbar={false}
-                  onNavigate={() => {}}
-                  onDrillDown={() => {}}
-                  style={{ width: '100%', height: '100%' }}
-                  popup
-                  selectable={false}
-                />
-              </>
-            </div>
-
-          </div>
-        </main>
       </div>
     </div>
   );
