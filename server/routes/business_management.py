@@ -53,6 +53,11 @@ def get_all_employees_endpoint():
     if auth_check:
         return auth_check
 
+    # Get business_code from claims
+    business_code = claims.get('business_code')
+    if not business_code:
+        return jsonify({"message": "Business code not found in token"}), 400
+
     try:
         # Get business_code from claims
         business_code = claims.get('business_code')
