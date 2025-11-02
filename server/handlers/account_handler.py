@@ -41,7 +41,7 @@ class AccountHandler:
         self.users_collection.create_index([("business_code", 1)], unique=False)
 
 
-    def _insert_user(self, input_username: str, hashed_password: str, role: str, code: str | None):
+    def _insert_user(self, input_username: str, hashed_password: str, role: str, code: str | None, first_name="", last_name=""):
         """ Helper method to insert user into the database """
 
         user_dict = {
