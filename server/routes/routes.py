@@ -55,7 +55,6 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/manager/business/employees', view_func=get_all_employees_endpoint, methods=['GET'])
 
 
-
     app.add_url_rule('/api/home', view_func=populate_home_endpoint, methods=['GET'])
 
     app.add_url_rule('/api/manager/schedules', view_func=get_schedules_endpoint, methods=['GET'])

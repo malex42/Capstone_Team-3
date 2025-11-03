@@ -122,3 +122,18 @@ class BusinessHandler:
 
     def get_business_from_code(self, code: str):
         return self.business_collection.find_one({"code": code})
+
+
+    def get_all_employees(self, business_code: str):
+        """ Get all employees by business code """
+        employees = self.users_collection.find({"business_code": business_code, "role": "EMPLOYEE"}).sort("username", 1)
+
+        return [
+            {
+                "employee_id": str(emp.get("_id")),
+                "username": emp.get("username", ""),
+                # "first_name": emp.get("first_name", ""),
+                # "last_name": emp.get("last_name", "")
+            }
+            for emp in employees
+        ]
