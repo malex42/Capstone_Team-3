@@ -13,7 +13,6 @@ from handlers.password_handler import PasswordHandler
 from handlers.validation_handler import ValidationHandler
 from handlers.exceptions.exceptions import UserAlreadyExistsError, PasswordFormatError
 
-
 class AccountHandler:
 
     def __init__(self, db_handler: DatabaseHandler, pw_handler: PasswordHandler):
@@ -72,17 +71,6 @@ class AccountHandler:
         """ Helper method to return the role of the user """
         return user['role']
 
-    def _update_business_code(self, user: dict, code: str):
-        result = self.users_collection.update_one(
-            {"_id": user["_id"]},  # Match the user by their _id
-            {"$set": {"business_code": code}}  # Set the business_code field
-        )
-
-        if result.modified_count > 0:
-            return True
-        else:
-            return False
-
     def get_user_role(self, input_username: str) -> str:
         user = self.find_user_by_name(input_username)
         return self._get_users_role(user)
@@ -133,13 +121,6 @@ class AccountHandler:
                     return True
 
         return False
-
-    def update_business_code(self, code: str, username: str):
-        # TODO 1. get user object using username
-        user = self.find_user_by_name(username)
-        if user:
-            return self._update_business_code(user, code)
-
 
 
 

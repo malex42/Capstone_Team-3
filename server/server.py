@@ -8,6 +8,7 @@ from handlers.account_handler import AccountHandler
 from handlers.business_handler import BusinessHandler
 from handlers.db_handler import DatabaseHandler
 from handlers.password_handler import PasswordHandler
+from handlers.schedule_handler import ScheduleHandler
 from routes.routes import setup_routes
 
 
@@ -18,6 +19,7 @@ class Server:
         self.pw_handler = PasswordHandler()
         self.acct_handler = AccountHandler(db_handler=self.db_handler, pw_handler=self.pw_handler)
         self.business_handler = BusinessHandler(db_handler=self.db_handler)
+        self.schedule_handler = ScheduleHandler(db_handler=self.db_handler)
 
         self.app = Flask(__name__)
 
@@ -69,7 +71,7 @@ class Server:
             }), 401
 
         # Set up all the API routes with the account handlers
-        setup_routes(self.app, self.acct_handler, self.business_handler)
+        setup_routes(self.app, self.acct_handler, self.business_handler, self.schedule_handler)
 
     def run(self, debug: bool = False):
         # Start the Flask server with the specified host and port
