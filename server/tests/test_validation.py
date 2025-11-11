@@ -1,5 +1,7 @@
 import pytest
-from handlers.validation_handler import ValidationHandler
+from handlers.password_handler import PasswordHandler
+
+class TestPasswordHandler:
 
 class TestValidation:
     def test_validation_user_inputs(self):
