@@ -47,6 +47,11 @@ Before running the server, you need the following files:
 3. Start the server:
 ``python3 main.py``
 
+Optional Virtual Enivronment (do this before step 2):
+python3 -m venv venv
+source venv/bin/activate
+
+
 The server will start running on the default port (3333).
 
 ### Running the Client
