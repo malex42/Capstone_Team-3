@@ -5,6 +5,8 @@ import CreateBusiness from './pages/createBusiness.jsx'
 import EmployeeHome from './pages/employeeHome.jsx'
 import ManagerHome from './pages/managerHome.jsx'
 import ManagerScheduleEditor from './pages/schedTools.jsx'
+import PostShift from './pages/postShift.jsx'
+import TakeShift from './pages/takeShift.jsx'   // <-- add this import
 import './App.css'
 
 function App() {
@@ -32,6 +34,11 @@ function App() {
 
         {/* Manager Schedule tools page */}
         <Route path="/schedules" element={<ManagerScheduleEditor />} />
+
+        {/* Post Shift page */}
+        <Route path="/post-shift" element={<PostShift />} />
+        {/* Take Shift page */}
+        <Route path="/take-shift" element={<TakeShift />} />
 
       </Routes>
     </Router>
