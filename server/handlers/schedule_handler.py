@@ -139,6 +139,8 @@ class ScheduleHandler:
     def post_shift(self, shift_id: str):
         pass
         # TODO 1. find shift by shift id
+        shift_id = str(shift_id)
+        result = self.schedules_collection.update_one()
         # 2. Updated the 'posted' field to True
 
 
