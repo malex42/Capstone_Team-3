@@ -154,6 +154,7 @@ class ScheduleHandler:
         # TODO return a list of shifts where posted is True
     pipeline = [
         {"$unwind": "$shifts"},
+        {"$match": {"shifts.posted": True}},
         
     ]
 
