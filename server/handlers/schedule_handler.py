@@ -155,7 +155,7 @@ class ScheduleHandler:
     pipeline = [
         {"$unwind": "$shifts"},
         {"$match": {"shifts.posted": True}},
-        
+        {"$replaceRoot": {"newRoot": "$shifts"}},
     ]
 
     def take_shift(self, shift_id: str, user_id: str):
