@@ -7,9 +7,11 @@ class TestPasswordHandler:
     def password_handler(self):
         return PasswordHandler()
 
-    def test_validation_user_inputs(self, password_handler):
-
-        user_inputs = [
-                "",
-                ""
+    def test_validate_password_success(self, password_handler):
+        """Test valid passwords pass validation"""
+        valid_passwords = [
+                "Password1",
+                "Test1234",
+                "Apple123",
+                "Banana123"
         ]
