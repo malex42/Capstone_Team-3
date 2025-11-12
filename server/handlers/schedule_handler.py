@@ -140,7 +140,10 @@ class ScheduleHandler:
         pass
         # TODO 1. find shift by shift id
         shift_id = str(shift_id)
-        result = self.schedules_collection.update_one()
+        result = self.schedules_collection.update_one(
+            {"shifts._id": shift_id},
+            {"set": {"shifts.$.posted": True}}
+        )
         # 2. Updated the 'posted' field to True
 
 
