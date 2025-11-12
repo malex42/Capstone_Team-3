@@ -142,7 +142,7 @@ class ScheduleHandler:
         shift_id = str(shift_id)
         result = self.schedules_collection.update_one(
             {"shifts._id": shift_id},
-            {"set": {"shifts.$.posted": True}}
+            {"$set": {"shifts.$.posted": True}}
         )
 
         return result.modified_count > 0
