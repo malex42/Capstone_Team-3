@@ -17,3 +17,7 @@ class TestPasswordHandler:
         ]
         for password in valid_passwords:
             assert password_handler.validate_password(password) is True
+
+    def test_validate_password_too_short(self, password_handler):
+        """Test password too short password validation"""
+        
