@@ -152,6 +152,10 @@ class ScheduleHandler:
     def get_posted_shifts(self):
         pass
         # TODO return a list of shifts where posted is True
+    pipeline = [
+        {"$unwind": "$shifts"},
+        
+    ]
 
     def take_shift(self, shift_id: str, user_id: str):
         pass
