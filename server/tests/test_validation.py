@@ -2,7 +2,8 @@ import pytest
 from handlers.password_handler import PasswordHandler
 
 class TestPasswordHandler:
-
+    """Unit tests for the PasswordHandler class"""
+    @pytest.fixture
     def password_handler(self):
         return PasswordHandler()
 
