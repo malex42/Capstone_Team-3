@@ -319,7 +319,7 @@ useEffect(() => {
               </div>
             </div>
             </button>
-<button>
+<button onClick={() => navigate('/take-shift')}>
             <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/takeShiftIcon.png" alt="Take Shift" />
               <div>

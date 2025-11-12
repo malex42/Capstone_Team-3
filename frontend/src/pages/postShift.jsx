@@ -7,7 +7,7 @@ import startOfWeek from "date-fns/startOfWeek";
 import getDay from "date-fns/getDay";
 import enUS from "date-fns/locale/en-US";
 
-import { authenticatedRequest, getHomePage } from "@/lib/api"; // reuse your existing API helpers
+import { authenticatedRequest } from "@/lib/api"; // <- use this for both calls
 
 // ---- Calendar localizer ----
 const locales = { "en-US": enUS };
@@ -58,15 +58,15 @@ function SelectedShiftCard({ shift, onRemove }) {
   );
 }
 
-export default function PostShifts() {
-  // Right calendar data (all employees’ shifts)
+export default function PostShift() {
+  // Right calendar data (this employee’s shifts)
   const [events, setEvents] = useState([]);     // { id, title, start, end, employee_id, employee_name }
   const [loading, setLoading] = useState(true);
 
   // Left panel (selected by the user)
   const [selected, setSelected] = useState([]);
 
-  // Month lock like your other page
+  // Month lock
   const today = useMemo(() => new Date(), []);
 
   // Layout sizing
@@ -74,22 +74,25 @@ export default function PostShifts() {
   const LEFT_PANEL_WIDTH = 320;
   const [calendarHeight, setCalendarHeight] = useState(600);
 
-  // Fetch shifts (all employees)
+  // --- LOAD SHIFTS FROM /api/employee/shifts ---
   useEffect(() => {
-    let mounted = true;
+    let active = true;
 
     (async () => {
       try {
-        const data = await getHomePage(); // you already return business_name and shifts here
-        if (!mounted) return;
+        // Auth header only; helper should inject it and JSON-parse the body
+        const data = await authenticatedRequest("/api/employee/shifts", { method: "GET" });
+        if (!active) return;
 
-        const mapped = (data.shifts || []).map((s, idx) => {
-          const start = new Date(s.start);
+        const mapped = (data?.shifts ?? []).map((s, idx) => {
+          const start = new Date(s.start); // ISO Z → Date
           const end = new Date(s.end);
-          const title = `${start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} – ${end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}${s.employee_name ? ` • ${s.employee_name}` : ""}`;
+          const title = `${start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} – ${end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}${
+            s.employee_name ? ` • ${s.employee_name}` : ""
+          }`;
 
           return {
-            id: s._id || idx,
+            id: s._id ?? `row-${idx}`,
             title,
             start,
             end,
@@ -101,13 +104,13 @@ export default function PostShifts() {
 
         setEvents(mapped);
       } catch (e) {
-        console.error("Failed to load shifts for Post Shifts:", e);
+        console.error("Failed to load /api/employee/shifts:", e);
       } finally {
-        if (mounted) setLoading(false);
+        if (active) setLoading(false);
       }
     })();
 
-    return () => { mounted = false; };
+    return () => { active = false; };
   }, []);
 
   // Resize calendar with viewport
@@ -135,23 +138,35 @@ export default function PostShifts() {
 
   const clearSelected = useCallback(() => setSelected([]), []);
 
-  // Optional: post selected shifts to API (e.g., to a marketplace/board)
+  // --- POST EACH SELECTED SHIFT TO /api/employee/post_shift ---
   const postSelected = useCallback(async () => {
     if (selected.length === 0) return;
     try {
-      const payload = { shift_ids: selected.map((s) => s.id) };
-      await authenticatedRequest("/api/post_shifts", {
-        method: "POST",
-        body: payload,
-      });
-      // You could show a toast; here we just clear the selection
-      clearSelected();
-      alert("Shifts posted!");
+      // The API takes ONE shift_id per request
+      const results = await Promise.allSettled(
+        selected.map((s) =>
+          authenticatedRequest("/api/employee/post_shift", {
+            method: "POST",
+            body: { shift_id: s.id },
+          })
+        )
+      );
+
+      const ok = results.filter(r => r.status === "fulfilled").length;
+      const fail = results.length - ok;
+
+      if (ok > 0) {
+        alert(`Posted ${ok} shift${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}.`);
+        // Optionally remove posted ones from the selection:
+        setSelected([]);
+      } else {
+        alert("Failed to post selected shifts.");
+      }
     } catch (e) {
       console.error(e);
       alert("Failed to post shifts.");
     }
-  }, [selected, clearSelected]);
+  }, [selected]);
 
   // Style selected shifts blue; others gray
   const eventPropGetter = useCallback(
