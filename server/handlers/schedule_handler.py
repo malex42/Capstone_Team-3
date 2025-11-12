@@ -85,6 +85,9 @@ class ScheduleHandler:
         # Add a unique _id field to the shift
         shift.update({'_id': str(ObjectId())})
 
+        # Add a 'posted' field to the shift
+        shift.update({'posted': False})
+
         username = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['username']
 
         # Add employee name field to the shift
@@ -130,4 +133,22 @@ class ScheduleHandler:
             return True
         else:
             return False
+
+
+
+    def post_shift(self, shift_id: str):
+        pass
+        # TODO 1. find shift by shift id
+        # 2. Updated the 'posted' field to True
+
+
+    def get_posted_shifts(self):
+        pass
+        # TODO return a list of shifts where posted is True
+
+    def take_shift(self, shift_id: str, user_id: str):
+        pass
+        # TODO 1. find the shift by the shift_id
+        # 2. set the 'posted' field to False
+        # 3. update the employee_id field to the user_id
 

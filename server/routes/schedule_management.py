@@ -162,3 +162,21 @@ def edit_shift_endpoint():
     return jsonify({"message": "failure"}), 400
 
 
+def post_shift_endpoint():
+
+    pass
+
+    #TODO use g.schedule_handler.post_shift()
+
+
+def get_posted_shifts_endpoint():
+    pass
+    # TODO use g.schedule_handler.get_posted_shifts()
+
+def take_shift_endpoint():
+    pass
+    # TODO use g.schedule_handler.take_shift()
+    # get user_id from the JWT claims
+
+
+
