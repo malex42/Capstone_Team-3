@@ -11,6 +11,7 @@ import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
 import { getHomePage, getBusinessCode, getEmployeeID, authenticatedRequest, saveToken } from '@/lib/api';
+    import { useNavigate } from 'react-router-dom';
 
 
 const locales = { 'en-US': enUS };
@@ -22,6 +23,7 @@ export default function EmployeeHome() {
   const [error, setError] = useState('');
   const [businessCode, setBusinessCode] = useState(getBusinessCode() || '');
   const [businessCodeInput, setBusinessCodeInput] = useState('');
+  const navigate = useNavigate();
 
   const employeeID = getEmployeeID();
   const [events, setEvents] = useState([]);
@@ -309,19 +311,22 @@ useEffect(() => {
               </div>
             </div>
 
+<button onClick={() => navigate('/post-shift')}>
             <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/postShitfIcon.png" alt="Post Shift" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666'  }}>Post Shifts</div>
               </div>
             </div>
-
+            </button>
+<button>
             <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/takeShiftIcon.png" alt="Take Shift" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666'  }}>Take Shifts</div>
               </div>
             </div>
+</button>
 
             <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/accountIcon.png" alt="Account" />

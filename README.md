@@ -44,11 +44,14 @@ Before running the server, you need the following files:
 ``cd server``
 
 Optional Virtual Enivronment (do this before step 2):
-python3 -m venv venv
-source venv/bin/activate
+``python3 -m venv venv``
+``source venv/bin/activate``
 
 2. Install the required Python packages:
 ``pip install -r requirements.txt``
+or
+``pip3 install -r requirements.txt``
+
 3. Start the server:
 ``python3 main.py``
 
