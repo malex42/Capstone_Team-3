@@ -15,3 +15,5 @@ class TestPasswordHandler:
                 "Apple123",
                 "Banana123"
         ]
+        for password in valid_passwords:
+            assert password_handler.validate_password(password) is True
