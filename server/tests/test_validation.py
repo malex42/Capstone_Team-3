@@ -22,3 +22,7 @@ class TestPasswordHandler:
         """Test password too short password validation"""
         with pytest.raises(ValueError, match="at least 8 characters long"):
             password_handler.validate_password("Pass1")
+
+    def test_validate_password_no_uppercase(self, password_handler):
+        """Test password with no uppercase characters present"""
+
