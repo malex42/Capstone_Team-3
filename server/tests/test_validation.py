@@ -20,4 +20,5 @@ class TestPasswordHandler:
 
     def test_validate_password_too_short(self, password_handler):
         """Test password too short password validation"""
-        
+        with pytest.raises(ValueError, match="at least 8 characters long"):
+            password_handler.validate_password("Pass1")
