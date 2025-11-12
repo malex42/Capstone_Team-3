@@ -144,6 +144,8 @@ class ScheduleHandler:
             {"shifts._id": shift_id},
             {"set": {"shifts.$.posted": True}}
         )
+
+        return result.modified_count > 0
         # 2. Updated the 'posted' field to True
 
 
