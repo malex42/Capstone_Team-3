@@ -239,6 +239,23 @@ def take_shift_endpoint():
         return auth_check
 
     # get user_id from the JWT claims
+    user_id = claims['user_id']
+
+    if not data or 'shift_id' not in data:
+        return jsonify({"message": "Shift id is required"}), 400
+
+    shift_id = data['shift_id']
+
+    try:
+        if g.schedule_handler.take_shift(shift_id=shift_id, user_id=user_id):
+            return jsonify({"message": "success"}), 200
+        else:
+            return jsonify({"message": "Shift not found"}), 404
+
+    except Exception as e:
+        msg = f"failure: {e}"
+        return jsonify({"message": msg}), 400
+
 
 
 
