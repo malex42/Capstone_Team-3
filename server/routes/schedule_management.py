@@ -71,8 +71,6 @@ def add_shift_endpoint():
     # data = request.get_json()
     data = request.get_json(silent=False, force=True)
 
-    print(data)
-    print(type(data))
     # JWT check
     verify_jwt_in_request()
 

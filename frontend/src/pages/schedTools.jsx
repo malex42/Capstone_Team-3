@@ -32,6 +32,8 @@ export default function ManagerScheduleEditor() {
   const [shiftEnd, setShiftEnd] = useState('');
   const [scheduleId, setScheduleId] = useState('');
   const [editingShift, setEditingShift] = useState(null);
+  const isEditing = Boolean(editingShift?._id);
+
 
 
 
@@ -74,6 +76,57 @@ export default function ManagerScheduleEditor() {
     );
   }
 
+  const dayPropGetter = (date) => {
+  const isSelected =
+    date.toDateString() === selectedDate.toDateString();
+
+  return {
+    style: isSelected
+      ? {
+          background: 'rgba(0, 123, 255, 0.25)', // light highlight
+          borderRadius: '6px'
+        }
+      : {}
+  };
+};
+
+   const exitShiftEditor = async () => {
+      await refreshSchedule();
+      setEditingShift(null);
+      setShowShiftEditor(false);
+    };
+
+
+
+  const refreshSchedule = async () => {
+  try {
+    const data = await getHomePage();
+    const mapped = (data.shifts || []).map((s, idx) => {
+     setBusinessName(data.business_name || '');
+     setScheduleId(data.schedule_id || '');
+      let start = new Date(s.start);
+      let end = new Date(s.end);
+      const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      const formattedEnd = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+      return {
+        id: s._id ?? idx,
+        _id: s._id,
+        employee_id: s.employee_id,
+        title: `${(s.employee_name ?? '').slice(0,10).toUpperCase()}: ${formattedStart} - ${formattedEnd}`,
+        start,
+        end,
+        allDay: false,
+      };
+    });
+
+    setEvents(mapped);
+  } catch (err) {
+    console.error("Failed to refresh schedule:", err);
+  }
+};
+
+
   useEffect(() => {
     function computeSize() {
       if (typeof window === 'undefined') return;
@@ -89,41 +142,47 @@ export default function ManagerScheduleEditor() {
     return () => window.removeEventListener('resize', computeSize);
   }, []);
 
-  useEffect(() => {
-    let mounted = true;
-    async function fetchHome() {
-      try {
-        const data = await getHomePage();
-        if (!mounted) return;
-        setBusinessName(data.business_name || '');
-        setScheduleId(data.schedule_id || '');
-        const mapped = (data.shifts || []).map((s, idx) => {
-          let start = s.start ? new Date(s.start) : new Date();
-          let end = s.end ? new Date(s.end) : new Date(start.getTime() + 60*60*1000);
-          if (isNaN(start)) start = new Date();
-          if (isNaN(end)) end = new Date(start.getTime() + 60*60*1000);
-          const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-          const formattedEnd = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-          return {
-            id: s._id || idx,
-            _id: s._id,
-            employee_id: s.employee_id,
-            title: `${String(s.employee_name ?? '').slice(0,10).toUpperCase()}: ${formattedStart} - ${formattedEnd}`,
-            start,
-            end,
-            allDay: false,
-          };
-        });
-        setEvents(mapped);
-      } catch (err) {
-        console.error('Failed to fetch shifts:', err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-    fetchHome();
-    return () => { mounted = false; };
-  }, []);
+
+    useEffect(() => {
+      refreshSchedule().finally(() => setLoading(false));
+    }, []);
+
+
+//   useEffect(() => {
+//     let mounted = true;
+//     async function fetchHome() {
+//       try {
+//         const data = await getHomePage();
+//         if (!mounted) return;
+//         setBusinessName(data.business_name || '');
+//         setScheduleId(data.schedule_id || '');
+//         const mapped = (data.shifts || []).map((s, idx) => {
+//           let start = s.start ? new Date(s.start) : new Date();
+//           let end = s.end ? new Date(s.end) : new Date(start.getTime() + 60*60*1000);
+//           if (isNaN(start)) start = new Date();
+//           if (isNaN(end)) end = new Date(start.getTime() + 60*60*1000);
+//           const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+//           const formattedEnd = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+//           return {
+//             id: s._id || idx,
+//             _id: s._id,
+//             employee_id: s.employee_id,
+//             title: `${String(s.employee_name ?? '').slice(0,10).toUpperCase()}: ${formattedStart} - ${formattedEnd}`,
+//             start,
+//             end,
+//             allDay: false,
+//           };
+//         });
+//         setEvents(mapped);
+//       } catch (err) {
+//         console.error('Failed to fetch shifts:', err);
+//       } finally {
+//         if (mounted) setLoading(false);
+//       }
+//     }
+//     fetchHome();
+//     return () => { mounted = false; };
+//   }, []);
 
   useEffect(() => {
     if (!showShiftEditor) return;
@@ -257,58 +316,80 @@ export default function ManagerScheduleEditor() {
         </select>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+      <button
+      onClick={async () => {
+        try {
+          const shift = {
+            employee_id: selectedEmployee,
+            start: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${shiftStart}:00`).toISOString(),
+            end: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${shiftEnd}:00`).toISOString(),
+          };
+
+          const url = isEditing
+            ? '/api/manager/schedules/edit_shift'
+            : '/api/manager/schedules/add_shift';
+
+          // If editing add the _id. If adding, do NOT include _id
+          if (isEditing) {
+            shift._id = editingShift._id;
+          }
+
+          await authenticatedRequest(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: {
+              schedule_id: scheduleId,
+              shift,
+            },
+          });
+
+          await exitShiftEditor();
+
+        } catch (err) {
+          console.error(err);
+        }
+      }}
+      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+    >
+      Save
+    </button>
+
+
+
           <button
-            onClick={async () => {
-              try {
-                const body = {
-                  schedule_id: scheduleId,
-                  shift: {
-                    _id: editingShift._id,
-                    employee_id: selectedEmployee,
-                    start: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${shiftStart}:00`).toISOString(),
-                    end: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${shiftEnd}:00`).toISOString(),
+          onClick={async () => {
+            try {
+              if (isEditing) {
+                // DELETE existing shift
+                await authenticatedRequest('/api/manager/schedules/delete_shift', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: {
+                    schedule_id: scheduleId,
+                    shift_id: editingShift._id,
                   },
-                };
-
-                const res = await authenticatedRequest('/api/manager/schedules/edit_shift', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: body,
                 });
-
-                if (!res.ok) throw new Error('Failed to save shift');
-
-                setShowShiftEditor(false);
-                setEditingShift(null);
-              } catch (err) {
-                console.error(err);
               }
-            }}
-            style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}
-          >
-            Save
-          </button>
 
-          <button
-            onClick={async () => {
-              try {
-                const body = { schedule_id: scheduleId, shift_id: editingShift._id };
-                const res = await authenticatedRequest('/api/manager/schedules/delete_shift', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: body,
-                });
-                if (!res.ok) throw new Error('Failed to delete shift');
-                setShowShiftEditor(false);
-                setEditingShift(null);
-              } catch (err) {
-                console.error(err);
-              }
-            }}
+              // Whether adding OR editing, exit returns to overview
+              await exitShiftEditor();
+
+              // Clear input fields when canceling a new shift
+              setSelectedEmployee('');
+              setShiftStart('');
+              setShiftEnd('');
+              setEditingShift(null);
+
+            } catch (err) {
+              console.error(err);
+            }
+          }}
+
             style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#dc3545', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}
-          >
-            Delete
-          </button>
+        >
+          Delete
+        </button>
+
         </div>
 
         </div>
@@ -422,6 +503,7 @@ export default function ManagerScheduleEditor() {
               defaultView="month"
               views={['month']}
               date={selectedDate}
+              dayPropGetter={dayPropGetter}
               selectable
               onSelectSlot={(slotInfo) => setSelectedDate(slotInfo.start)}
               onSelectEvent={(event) => setSelectedDate(new Date(event.start))}
