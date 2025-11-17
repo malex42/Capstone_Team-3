@@ -224,6 +224,19 @@ def get_posted_shifts_endpoint():
 def take_shift_endpoint():
     pass
     # TODO use g.schedule_handler.take_shift()
+
+    data = request.get_json()
+
+    # JWT check
+    verify_jwt_in_request()
+
+    # Get the claims from JWT token
+    claims = get_jwt()
+
+    # Role enforcement check if both managers and employees can take shifts
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return auth_check
     # get user_id from the JWT claims
 
 
