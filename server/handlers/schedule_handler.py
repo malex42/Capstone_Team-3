@@ -170,5 +170,15 @@ class ScheduleHandler:
         username = user.get('username', 'Unknown')
 
         # 2. set the 'posted' field to False
+        result = self.schedules_collection.update_one(
+            {"shifts._id": shift_id, "shifts.posted": True},
+            {
+                "$set": {
+                    "shifts.$.posted": False,
+                    "shifts.$.employee_id": user_id,
+                    "shifts.$.employee_name": username
+                }
+            }
+        )
         # 3. update the employee_id field to the user_id
 
