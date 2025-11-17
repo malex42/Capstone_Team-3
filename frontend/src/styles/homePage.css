@@ -86,3 +86,9 @@ img{
   padding: 0;
 }
 
+/* Force dark clock icon on time inputs (Chrome/Edge) */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.9); /* makes icon dark instead of white */
+  opacity: 1;
+}
+
