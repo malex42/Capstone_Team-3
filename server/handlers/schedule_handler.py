@@ -161,6 +161,14 @@ class ScheduleHandler:
     def take_shift(self, shift_id: str, user_id: str):
         pass
         # TODO 1. find the shift by the shift_id
+        shift_id = str(shift_id)
+        user = self.users_collection.find_one({"_id": ObjectId(user_id)})
+
+        if not user:
+            return False
+
+        username = user.get('username', 'Unknown')
+
         # 2. set the 'posted' field to False
         # 3. update the employee_id field to the user_id
 
