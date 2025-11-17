@@ -85,6 +85,12 @@ class ScheduleHandler:
         # Add a unique _id field to the shift
         shift.update({'_id': str(ObjectId())})
 
+        # Add a clocked_in field to the shift
+        shift.update({'clocked_in': False})
+
+        # Add a completed field to the shift
+        shift.update({'completed': False})
+
         username = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['username']
 
         # Add employee name field to the shift
