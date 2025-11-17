@@ -181,4 +181,4 @@ class ScheduleHandler:
             }
         )
         # 3. update the employee_id field to the user_id
-
+        return result.modified_count > 0
