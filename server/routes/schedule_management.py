@@ -210,7 +210,17 @@ def get_posted_shifts_endpoint():
         return auth_check
     # Get business_code from the JWT token
     business_code = claims['code']
-    
+
+    try:
+        posted_shifts = g.schedule_handler.get_posted_shifts(business_code)
+        # Convert ObjectIds to strings
+        posted_shifts = jsonify_keys(original=posted_shifts, keys_to_convert=['_id'])
+        return jsonify({"posted_shifts": posted_shifts, "message":"success"}), 200
+
+    except Exception as e:
+        msg = f"failure: {e}"
+        return jsonify({"message": msg}), 400
+
 def take_shift_endpoint():
     pass
     # TODO use g.schedule_handler.take_shift()
