@@ -34,10 +34,11 @@ export default function ManagerScheduleEditor() {
   const [editingShift, setEditingShift] = useState(null);
   const isEditing = Boolean(editingShift?._id);
 
-
-
-
   const today = useMemo(() => new Date(), []);
+  const [viewMonth, setViewMonth] = useState(today.getMonth() + 1);
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [schedules, setSchedules] = useState([]);
+
 
   const HEADER_HEIGHT = 84;
   const LEFT_NAV_WIDTH = 260;
@@ -76,6 +77,12 @@ export default function ManagerScheduleEditor() {
     );
   }
 
+
+    const scheduleExists = (year, month) => {
+      return schedules.some(s => s.year === year && s.month === month);
+    };
+
+
   const dayPropGetter = (date) => {
   const isSelected =
     date.toDateString() === selectedDate.toDateString();
@@ -96,14 +103,61 @@ export default function ManagerScheduleEditor() {
       setShowShiftEditor(false);
     };
 
+    const createSchedule = async (year, month) => {
+      const res = await authenticatedRequest("/api/manager/schedules/new", {
+        method: "POST",
+        body: { year, month }
+      });
+
+      setSchedules(prev => [...prev, { year, month }]);
+    };
 
 
-  const refreshSchedule = async () => {
+    const goPrevMonth = async () => {
+      let m = viewMonth - 1;
+      let y = viewYear;
+      if (m === 0) {
+        m = 12;
+        y--;
+      }
+
+      if (!scheduleExists(y, m)) {
+        await createSchedule(y, m);
+      }
+
+      setViewMonth(m);
+      setViewYear(y);
+    };
+
+    const goNextMonth = async () => {
+      let m = viewMonth + 1;
+      let y = viewYear;
+      if (m === 13) {
+        m = 1;
+        y++;
+      }
+
+      if (!scheduleExists(y, m)) {
+        await createSchedule(y, m);
+      }
+
+      setViewMonth(m);
+      setViewYear(y);
+    };
+
+    const activeSchedule = schedules.find(
+      s => s.month === viewMonth && s.year === viewYear
+    );
+
+    const shifts = activeSchedule?.shifts || [];
+
+
+  const refreshSchedule = async (schedule = null) => {
   try {
-    const data = await getHomePage();
+    const data = await getHomePage(); // or fetch shifts for specific schedule if API supports
     const mapped = (data.shifts || []).map((s, idx) => {
-     setBusinessName(data.business_name || '');
-     setScheduleId(data.schedule_id || '');
+      setBusinessName(data.business_name || '');
+      setScheduleId(data.schedule_id || '');
       let start = new Date(s.start);
       let end = new Date(s.end);
       const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -127,6 +181,24 @@ export default function ManagerScheduleEditor() {
 };
 
 
+
+  useEffect(() => {
+  const loadSchedules = async () => {
+    try {
+      const data = await authenticatedRequest("/api/manager/schedules");
+      // Extract the array
+      setSchedules(data.schedules || []);
+      console.log("Loaded schedules:", data.schedules);
+    } catch (err) {
+      console.error("Failed to load schedules:", err);
+    }
+  };
+
+  loadSchedules();
+}, []);
+
+
+
   useEffect(() => {
     function computeSize() {
       if (typeof window === 'undefined') return;
@@ -147,42 +219,6 @@ export default function ManagerScheduleEditor() {
       refreshSchedule().finally(() => setLoading(false));
     }, []);
 
-
-//   useEffect(() => {
-//     let mounted = true;
-//     async function fetchHome() {
-//       try {
-//         const data = await getHomePage();
-//         if (!mounted) return;
-//         setBusinessName(data.business_name || '');
-//         setScheduleId(data.schedule_id || '');
-//         const mapped = (data.shifts || []).map((s, idx) => {
-//           let start = s.start ? new Date(s.start) : new Date();
-//           let end = s.end ? new Date(s.end) : new Date(start.getTime() + 60*60*1000);
-//           if (isNaN(start)) start = new Date();
-//           if (isNaN(end)) end = new Date(start.getTime() + 60*60*1000);
-//           const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-//           const formattedEnd = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-//           return {
-//             id: s._id || idx,
-//             _id: s._id,
-//             employee_id: s.employee_id,
-//             title: `${String(s.employee_name ?? '').slice(0,10).toUpperCase()}: ${formattedStart} - ${formattedEnd}`,
-//             start,
-//             end,
-//             allDay: false,
-//           };
-//         });
-//         setEvents(mapped);
-//       } catch (err) {
-//         console.error('Failed to fetch shifts:', err);
-//       } finally {
-//         if (mounted) setLoading(false);
-//       }
-//     }
-//     fetchHome();
-//     return () => { mounted = false; };
-//   }, []);
 
   useEffect(() => {
     if (!showShiftEditor) return;
@@ -460,23 +496,11 @@ export default function ManagerScheduleEditor() {
         >
           Add Shift
         </button>
-        <button
-          style={{
-            padding: '10px 12px',
-            borderRadius: 8,
-            background: '#17a2b8',
-            color: '#fff',
-            fontWeight: 600,
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          New Schedule
-        </button>
       </div>
     </>
   )}
 </div>
+
 
 
         {/* Calendar */}
@@ -507,9 +531,44 @@ export default function ManagerScheduleEditor() {
               selectable
               onSelectSlot={(slotInfo) => setSelectedDate(slotInfo.start)}
               onSelectEvent={(event) => setSelectedDate(new Date(event.start))}
-              toolbar={false}
+              toolbar
               style={{ width: '100%', height: '100%' }}
+              onNavigate={async (date) => {
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+
+                setSelectedDate(date);
+                setViewMonth(month);
+                setViewYear(year);
+
+                // Check if schedule already exists locally
+                let schedule = schedules.find(s => s.year === year && s.month === month);
+
+                if (!schedule) {
+                  try {
+                    const res = await authenticatedRequest("/api/manager/schedules/new", {
+                      method: "POST",
+                      body: { year, month }
+                    });
+                    console.log("Created schedule:", res);
+
+                    // Append new schedule to local schedules
+                    const newSchedule = { year, month };
+                    setSchedules(prev => [...prev, newSchedule]);
+
+                    schedule = newSchedule;
+                  } catch (err) {
+                    console.error("Failed to create schedule:", err);
+                    return;
+                  }
+                }
+
+                // Load shifts for the active schedule
+                await refreshSchedule(schedule);
+              }}
             />
+
+
           </div>
         </main>
       </div>
