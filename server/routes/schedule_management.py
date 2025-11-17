@@ -175,6 +175,17 @@ def post_shift_endpoint():
     # Get the claims from the JWT token
     claims = get_jwt()
 
+    # Role enforcement check, only for managers that post shifts
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return auth_check
+
+    #Get business code from JWT
+    business_code = claims['code']
+
+    try:
+        posted_shifts = g.schedule_handler.get_posted_shifts(business_code)
+        
 def get_posted_shifts_endpoint():
     pass
     # TODO use g.schedule_handler.get_posted_shifts()
