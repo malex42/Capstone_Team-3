@@ -198,6 +198,8 @@ def post_shift_endpoint():
 def get_posted_shifts_endpoint():
     pass
     # TODO use g.schedule_handler.get_posted_shifts()
+    # JWT check
+    verify_jwt_in_request()
 
 def take_shift_endpoint():
     pass
