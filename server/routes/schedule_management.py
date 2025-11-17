@@ -185,6 +185,13 @@ def post_shift_endpoint():
 
     shift_id = data['shift_id']
 
+    try:
+        if g.schedule_handler.post_shift(shift_id=shift_id):
+            return jsonify({"message": "success"}), 200
+        else:
+            return jsonify({"message": "Shift not found"}), 404
+
+
 def get_posted_shifts_endpoint():
     pass
     # TODO use g.schedule_handler.get_posted_shifts()
