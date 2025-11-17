@@ -237,6 +237,7 @@ def take_shift_endpoint():
     auth_check = is_authorized(claims, [Role.MANAGER])
     if auth_check:
         return auth_check
+
     # get user_id from the JWT claims
 
 
