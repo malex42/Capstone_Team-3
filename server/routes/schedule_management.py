@@ -183,9 +183,8 @@ def post_shift_endpoint():
     if not data or 'shift_id' not in data:
         return jsonify({"message": "Shift id is required"}), 400
 
-    try:
-        posted_shifts = g.schedule_handler.get_posted_shifts(business_code)
-        
+    shift_id = data['shift_id']
+
 def get_posted_shifts_endpoint():
     pass
     # TODO use g.schedule_handler.get_posted_shifts()
