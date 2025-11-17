@@ -208,7 +208,7 @@ def get_posted_shifts_endpoint():
     auth_check = is_authorized(claims, [Role.MANAGER])
     if auth_check:
         return auth_check
-
+    # Get business_code from the JWT token
     business_code = claims['code']
     
 def take_shift_endpoint():
