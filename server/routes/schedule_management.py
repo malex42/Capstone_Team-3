@@ -167,6 +167,7 @@ def post_shift_endpoint():
     pass
 
     #TODO use g.schedule_handler.post_shift()
+    data = request.get_json()
 
 
 def get_posted_shifts_endpoint():
