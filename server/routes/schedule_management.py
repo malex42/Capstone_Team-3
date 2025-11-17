@@ -191,6 +191,9 @@ def post_shift_endpoint():
         else:
             return jsonify({"message": "Shift not found"}), 404
 
+    except Exception as e:
+        msg = f"failure: {e}"
+        return jsonify({"message": msg}), 400
 
 def get_posted_shifts_endpoint():
     pass
