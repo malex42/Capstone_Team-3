@@ -180,8 +180,8 @@ def post_shift_endpoint():
     if auth_check:
         return auth_check
 
-    #Get business code from JWT
-    business_code = claims['code']
+    if not data or 'shift_id' not in data:
+        return jsonify({"message": "Shift id is required"}), 400
 
     try:
         posted_shifts = g.schedule_handler.get_posted_shifts(business_code)
