@@ -24,5 +24,7 @@ class TestPasswordHandler:
             password_handler.validate_password("Pass1")
 
     def test_validate_password_no_uppercase(self, password_handler):
-        """Test password with no uppercase characters present"""
+        """Test that passwords without uppercase letters fail"""
+        with pytest.raises(ValueError, match="at least one uppercase letter"):
+            password_handler.validate_password("password123")
 
