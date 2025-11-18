@@ -32,3 +32,8 @@ class TestPasswordHandler:
         """Test that password with no lowercase letters present"""
         with pytest.raises(ValueError, match="at least one lowercase letter"):
             password_handler.validate_password("PASSWORD123")
+
+    def test_validate_password_no_numbers(self, password_handler):
+        """Test that password with no numbers present"""
+        with pytest.raises(ValueError, match="at least one number"):
+            password_handler.validate_password("PasswordOnly")
