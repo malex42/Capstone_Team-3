@@ -60,9 +60,9 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/manager/schedules/delete_shift', view_func=delete_shift_endpoint, methods=['POST'])
     app.add_url_rule('/api/manager/schedules/edit_shift', view_func=edit_shift_endpoint, methods=['POST'])
 
-    app.add_url_rule('api/employee/shifts', view_func=get_posted_shifts_endpoint(), methods=['GET'])
-    app.add_url_rule('api/employee/post_shift', view_func=post_shift_endpoint(), methods=['POST'])
-    app.add_url_rule('api/employee/take_shift', view_func=take_shift_endpoint(), methods=['POST'])
+    app.add_url_rule('api/employee/shifts', view_func=get_posted_shifts_endpoint, methods=['GET'])
+    app.add_url_rule('api/employee/post_shift', view_func=post_shift_endpoint, methods=['POST'])
+    app.add_url_rule('api/employee/take_shift', view_func=take_shift_endpoint, methods=['POST'])
 
 
 
