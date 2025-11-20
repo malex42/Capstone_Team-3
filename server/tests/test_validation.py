@@ -56,5 +56,5 @@ class TestPasswordHandler:
         """Test that password matches failure"""
         password = "Password123"
         wrong_password = "WrongPass456"
-        hashed = password_handler.validate_password(password)
+        hashed = password_handler.hash_password(password)
         assert password_handler.verify_password_match(wrong_password, hashed) is False
