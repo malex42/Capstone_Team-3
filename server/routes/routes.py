@@ -12,7 +12,7 @@ from routes.account_management import create_user_endpoint, login_endpoint
 from routes.business_management import create_business_endpoint, link_business_endpoint
 from routes.home_management import populate_home_endpoint
 from routes.schedule_management import new_schedule_endpoint, get_schedules_endpoint, add_shift_endpoint, \
-    delete_shift_endpoint, edit_shift_endpoint
+    delete_shift_endpoint, edit_shift_endpoint, get_posted_shifts_endpoint, take_shift_endpoint, post_shift_endpoint
 
 
 def setup_routes(app, account_handler: AccountHandler, business_handler: BusinessHandler,
