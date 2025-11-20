@@ -37,3 +37,24 @@ class TestPasswordHandler:
         """Test that password with no numbers present"""
         with pytest.raises(ValueError, match="at least one number"):
             password_handler.validate_password("PasswordOnly")
+
+    def test_hashed_password_returns_string(self, password_handler):
+        """Test that hashed password returns string"""
+        hashed = password_handler.hash_password("Password123")
+        assert isinstance(hashed, str)
+        assert len(hashed) > 0
+
+    def test_hash_password_different_outputs(self, password_handler):
+        """Test that same password hashed outputs different outputs"""
+
+        password = "Password123"
+        hash1 = password_handler.hash_password(password)
+        hash2 = password_handler.hash_password(password)
+        assert hash1 == hash2
+
+    def test_verify_password_match_failure(self, password_handler):
+        """Test that password matches failure"""
+        password = "Password123"
+        wrong_password = "WrongPass456"
+        hashed = password_handler.validate_password(password)
+        assert password_handler.verify_password_match(wrong_password, hashed) is False
