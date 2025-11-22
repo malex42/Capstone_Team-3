@@ -64,3 +64,10 @@ class TestPasswordHandler:
         wrong_password = "WrongPass456"
         hashed = password_handler.hash_password(password)
         assert password_handler.verify_password_match(wrong_password, hashed) is False
+
+    def test_verify_password_match_success(self, password_handler):
+        """Test that password matches success"""
+        password = "Password123"
+        hashed = password_handler.hash_password(password)
+        assert password_handler.verify_password_match(password, hashed) is True
+
