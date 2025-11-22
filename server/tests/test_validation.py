@@ -52,6 +52,12 @@ class TestPasswordHandler:
         hash2 = password_handler.hash_password(password)
         assert hash1 == hash2
 
+    def test_hash_different_outputs(self, password_handler):
+        """Test that different passwords hashed outputs different outputs"""
+        hash1 = password_handler.hash_password("Password123")
+        hash2 = password_handler.hash_password("DifferentPass456")
+        assert hash1 != hash2
+        
     def test_verify_password_match_failure(self, password_handler):
         """Test that password matches failure"""
         password = "Password123"
