@@ -9,7 +9,13 @@ class TestValidationHandler:
         """Test that input validation works"""
         valid_inputs = [
             "test@example",
-            "username"
+            "username",
+            "user-name",
+            "user.name",
+            "Coffee-Shop",
+            "lead_developer",
+            "project_manager",
+            "business_owner"
         ]
         for input_text in valid_inputs:
             assert ValidationHandler.validate_user_input(input_text) is True
