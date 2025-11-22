@@ -71,3 +71,10 @@ class TestPasswordHandler:
         hashed = password_handler.hash_password(password)
         assert password_handler.verify_password_match(password, hashed) is True
 
+    def test_verify_password_case_sensitive(self, password_handler):
+        """Test that password verification is case-sensitive"""
+        password = "Password123"
+        hashed = password_handler.hash_password(password)
+        assert password_handler.verify_password_match("password123", hashed) is False
+        assert password_handler.verify_password_match("PASSWORD123", hashed) is False
+
