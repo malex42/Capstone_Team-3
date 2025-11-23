@@ -24,3 +24,8 @@ class TestValidationHandler:
         """Test that inputs exceed 50 characters would fail"""
         too_long = "a" * 51
         assert ValidationHandler.validate_user_input(too_long) is False
+
+    def test_validate_input_length_boundary(self):
+        """Test boundary of 50 characters"""
+        approximate_50 = "a" * 50
+        assert ValidationHandler.validate_user_input(approximate_50) is True
