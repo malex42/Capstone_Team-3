@@ -163,10 +163,6 @@ def edit_shift_endpoint():
 
 
 def post_shift_endpoint():
-
-    pass
-
-    #TODO use g.schedule_handler.post_shift()
     data = request.get_json()
 
     # JWT check
@@ -175,8 +171,8 @@ def post_shift_endpoint():
     # Get the claims from the JWT token
     claims = get_jwt()
 
-    # Role enforcement check, only for managers that post shifts
-    auth_check = is_authorized(claims, [Role.MANAGER])
+    # Role enforcement check, only for employees that post shifts
+    auth_check = is_authorized(claims, [Role.EMPLOYEE])
     if auth_check:
         return auth_check
 
@@ -196,18 +192,17 @@ def post_shift_endpoint():
         return jsonify({"message": msg}), 400
 
 def get_posted_shifts_endpoint():
-    pass
-    # TODO use g.schedule_handler.get_posted_shifts()
     # JWT check
     verify_jwt_in_request()
 
     # Get the claims from the JWT token
     claims = get_jwt()
 
-    # Role enforcement check where managers and employees can see shifts
-    auth_check = is_authorized(claims, [Role.MANAGER])
+    # Role enforcement check where employee and employees can see shifts
+    auth_check = is_authorized(claims, [Role.EMPLOYEE])
     if auth_check:
         return auth_check
+
     # Get business_code from the JWT token
     business_code = claims['code']
 
@@ -222,9 +217,6 @@ def get_posted_shifts_endpoint():
         return jsonify({"message": msg}), 400
 
 def take_shift_endpoint():
-    pass
-    # TODO use g.schedule_handler.take_shift()
-
     data = request.get_json()
 
     # JWT check
@@ -233,8 +225,8 @@ def take_shift_endpoint():
     # Get the claims from JWT token
     claims = get_jwt()
 
-    # Role enforcement check if both managers and employees can take shifts
-    auth_check = is_authorized(claims, [Role.MANAGER])
+    # Role enforcement check, employees can take shifts
+    auth_check = is_authorized(claims, [Role.EMPLOYEE])
     if auth_check:
         return auth_check
 

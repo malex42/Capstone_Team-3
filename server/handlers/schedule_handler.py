@@ -137,31 +137,36 @@ class ScheduleHandler:
 
 
     def post_shift(self, shift_id: str):
-        pass
-        # TODO 1. find shift by shift id
-        shift_id = str(shift_id)
+        shift_id = shift_id
         result = self.schedules_collection.update_one(
             {"shifts._id": shift_id},
             {"$set": {"shifts.$.posted": True}}
         )
 
-        return result.modified_count > 0
-        # 2. Updated the 'posted' field to True
+        if result.modified_count > 0:
+            return True
+        return False
 
 
-    def get_posted_shifts(self):
-        pass
-        # TODO return a list of shifts where posted is True
-    pipeline = [
-        {"$unwind": "$shifts"},
-        {"$match": {"shifts.posted": True}},
-        {"$replaceRoot": {"newRoot": "$shifts"}},
-    ]
+    def get_posted_shifts(self, business_code: str):
+        # Find all schedules for this business
+        schedules = self.schedules_collection.find(
+            {"business_code": business_code},
+            {"shifts": 1, "_id": 0}
+        )
+
+        posted_shifts = []
+
+        for schedule in schedules:
+            for shift in schedule.get("shifts", []):
+                if shift.get("posted") is True:
+                    posted_shifts.append(shift)
+
+        return posted_shifts
+
 
     def take_shift(self, shift_id: str, user_id: str):
-        pass
-        # TODO 1. find the shift by the shift_id
-        shift_id = str(shift_id)
+        shift_id = shift_id
         user = self.users_collection.find_one({"_id": ObjectId(user_id)})
 
         if not user:
@@ -169,9 +174,8 @@ class ScheduleHandler:
 
         username = user.get('username', 'Unknown')
 
-        # 2. set the 'posted' field to False
         result = self.schedules_collection.update_one(
-            {"shifts._id": shift_id, "shifts.posted": True},
+            {"shifts._id": shift_id},
             {
                 "$set": {
                     "shifts.$.posted": False,
@@ -180,5 +184,8 @@ class ScheduleHandler:
                 }
             }
         )
-        # 3. update the employee_id field to the user_id
-        return result.modified_count > 0
+
+        if result.modified_count > 0:
+            return True
+
+        return False

@@ -38,6 +38,7 @@ def populate_home_endpoint():
             return jsonify({
                 "message": "success",
                 "business_name": business["business_name"],
+                "business_code": business["code"],
                 "shifts": schedule["shifts"] if schedule else ""
             }), 200
         else:
