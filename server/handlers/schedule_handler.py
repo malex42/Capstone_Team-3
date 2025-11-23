@@ -152,11 +152,14 @@ class ScheduleHandler:
     def get_posted_shifts(self):
         pass
         # TODO return a list of shifts where posted is True
-    pipeline = [
-        {"$unwind": "$shifts"},
-        {"$match": {"shifts.posted": True}},
-        {"$replaceRoot": {"newRoot": "$shifts"}},
-    ]
+
+        pipeline = [
+            {"$unwind": "$shifts"},
+            {"$match": {"shifts.posted": True}},
+            {"$replaceRoot": {"newRoot": "$shifts"}},
+        ]
+
+        return list(self.schedules_collection.aggregate(pipeline))
 
     def take_shift(self, shift_id: str, user_id: str):
         pass
