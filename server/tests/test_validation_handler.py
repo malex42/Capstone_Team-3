@@ -29,3 +29,15 @@ class TestValidationHandler:
         """Test boundary of 50 characters"""
         approximate_50 = "a" * 50
         assert ValidationHandler.validate_user_input(approximate_50) is True
+
+    def test_validate_input_sql_injection_attempt(self):
+        """Test that sql injection attempt are blocked"""
+        malicious_inputs = [
+            "admin' OR '1'='1",
+            "admin' AND 1=1--",
+            "admin'||'1'='1",
+            "' OR 1=1--",
+            "1' OR '1'='1'--",
+            "' OR 'x'='x",
+
+        ]
