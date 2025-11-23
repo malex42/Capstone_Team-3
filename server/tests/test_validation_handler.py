@@ -71,3 +71,7 @@ class TestValidationHandler:
     def test_validate_empty_string(self):
         """Test that empty string passes validation"""
         assert ValidationHandler.validate_user_input("") is True
+
+    def test_validate_numeric_only(self):
+        """Test that numeric only inputs are valid"""
+        assert ValidationHandler.validate_user_input("123") is True
