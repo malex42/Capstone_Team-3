@@ -67,3 +67,7 @@ class TestValidationHandler:
 
         for special_character in special_characters:
             assert ValidationHandler.validate_user_input(special_character) is False
+
+    def test_validate_empty_string(self):
+        """Test that empty string passes validation"""
+        assert ValidationHandler.validate_user_input("") is True
