@@ -14,6 +14,7 @@ from routes.home_management import populate_home_endpoint
 from routes.schedule_management import new_schedule_endpoint, get_schedules_endpoint, add_shift_endpoint, \
     delete_shift_endpoint, edit_shift_endpoint, get_posted_shifts_endpoint, take_shift_endpoint, post_shift_endpoint
 
+from routes.business_management import get_all_employees_endpoint
 
 def setup_routes(app, account_handler: AccountHandler, business_handler: BusinessHandler,
                  schedule_handler: ScheduleHandler):
@@ -51,6 +52,8 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
 
     app.add_url_rule('/api/manager/new/business', view_func=create_business_endpoint, methods=['POST'])
     app.add_url_rule('/api/link_business', view_func=link_business_endpoint, methods=['POST'])
+    app.add_url_rule('/api/manager/business/employees', view_func=get_all_employees_endpoint, methods=['GET'])
+
 
     app.add_url_rule('/api/home', view_func=populate_home_endpoint, methods=['GET'])
 

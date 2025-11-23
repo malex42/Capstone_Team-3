@@ -48,6 +48,35 @@ def create_business_endpoint():
 
     return jsonify({"message": "failure, unknown"}), 400
 
+def get_all_employees_endpoint():
+    """ Endpoint to get all employees """
+
+    # Get the claims from the JWT token
+    verify_jwt_in_request()
+    # Get the claims from the JWT token
+    claims = get_jwt()
+
+    # Check if user is authorized
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return auth_check
+
+    # Get business_code from claims
+    business_code = claims.get('code')
+    if not business_code:
+        return jsonify({"message": "Business code not found in token"}), 400
+
+    try:
+
+        # Call the business handler to get all employees
+        employees = g.business_handler.get_all_employees(business_code)
+
+        return jsonify(employees), 200
+
+    except Exception as e:
+        return jsonify({"message": f"Error fetching employees: {str(e)}"}), 500
+
+
 
 def link_business_endpoint():
     data = request.get_json()

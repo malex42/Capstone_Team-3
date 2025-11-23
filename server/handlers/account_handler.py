@@ -40,7 +40,7 @@ class AccountHandler:
         self.users_collection.create_index([("business_code", 1)], unique=False)
 
 
-    def _insert_user(self, input_username: str, hashed_password: str, role: str, code: str | None):
+    def _insert_user(self, input_username: str, hashed_password: str, role: str, code: str | None, first_name="", last_name=""):
         """ Helper method to insert user into the database """
 
         user_dict = {
@@ -48,7 +48,9 @@ class AccountHandler:
             "password": hashed_password,
             "role": role,
             "business_code": code if code is not None else '',
-            "created_at": datetime.now()
+            "created_at": datetime.now(),
+            "first_name": first_name,
+            "last_name": last_name
      }
         additional_fields = {}
 
@@ -119,6 +121,7 @@ class AccountHandler:
                     return True
 
         return False
+
 
 
     # def delete_user(self, input_username: str, input_password: str) -> bool:
