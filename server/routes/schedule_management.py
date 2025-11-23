@@ -162,3 +162,100 @@ def edit_shift_endpoint():
     return jsonify({"message": "failure"}), 400
 
 
+def post_shift_endpoint():
+
+    pass
+
+    #TODO use g.schedule_handler.post_shift()
+    data = request.get_json()
+
+    # JWT check
+    verify_jwt_in_request()
+
+    # Get the claims from the JWT token
+    claims = get_jwt()
+
+    # Role enforcement check, only for managers that post shifts
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return auth_check
+
+    if not data or 'shift_id' not in data:
+        return jsonify({"message": "Shift id is required"}), 400
+
+    shift_id = data['shift_id']
+
+    try:
+        if g.schedule_handler.post_shift(shift_id=shift_id):
+            return jsonify({"message": "success"}), 200
+        else:
+            return jsonify({"message": "Shift not found"}), 404
+
+    except Exception as e:
+        msg = f"failure: {e}"
+        return jsonify({"message": msg}), 400
+
+def get_posted_shifts_endpoint():
+    pass
+    # TODO use g.schedule_handler.get_posted_shifts()
+    # JWT check
+    verify_jwt_in_request()
+
+    # Get the claims from the JWT token
+    claims = get_jwt()
+
+    # Role enforcement check where managers and employees can see shifts
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return auth_check
+    # Get business_code from the JWT token
+    business_code = claims['code']
+
+    try:
+        posted_shifts = g.schedule_handler.get_posted_shifts(business_code)
+        # Convert ObjectIds to strings
+        posted_shifts = jsonify_keys(original=posted_shifts, keys_to_convert=['_id'])
+        return jsonify({"posted_shifts": posted_shifts, "message":"success"}), 200
+
+    except Exception as e:
+        msg = f"failure: {e}"
+        return jsonify({"message": msg}), 400
+
+def take_shift_endpoint():
+    pass
+    # TODO use g.schedule_handler.take_shift()
+
+    data = request.get_json()
+
+    # JWT check
+    verify_jwt_in_request()
+
+    # Get the claims from JWT token
+    claims = get_jwt()
+
+    # Role enforcement check if both managers and employees can take shifts
+    auth_check = is_authorized(claims, [Role.MANAGER])
+    if auth_check:
+        return auth_check
+
+    # get user_id from the JWT claims
+    user_id = claims['user_id']
+
+    if not data or 'shift_id' not in data:
+        return jsonify({"message": "Shift id is required"}), 400
+
+    shift_id = data['shift_id']
+
+    try:
+        if g.schedule_handler.take_shift(shift_id=shift_id, user_id=user_id):
+            return jsonify({"message": "success"}), 200
+        else:
+            return jsonify({"message": "Shift not found"}), 404
+
+    except Exception as e:
+        msg = f"failure: {e}"
+        return jsonify({"message": msg}), 400
+
+
+
+

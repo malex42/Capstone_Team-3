@@ -85,6 +85,9 @@ class ScheduleHandler:
         # Add a unique _id field to the shift
         shift.update({'_id': str(ObjectId())})
 
+        # Add a 'posted' field to the shift
+        shift.update({'posted': False})
+
         username = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['username']
 
         # Add employee name field to the shift
@@ -131,3 +134,51 @@ class ScheduleHandler:
         else:
             return False
 
+
+
+    def post_shift(self, shift_id: str):
+        pass
+        # TODO 1. find shift by shift id
+        shift_id = str(shift_id)
+        result = self.schedules_collection.update_one(
+            {"shifts._id": shift_id},
+            {"$set": {"shifts.$.posted": True}}
+        )
+
+        return result.modified_count > 0
+        # 2. Updated the 'posted' field to True
+
+
+    def get_posted_shifts(self):
+        pass
+        # TODO return a list of shifts where posted is True
+    pipeline = [
+        {"$unwind": "$shifts"},
+        {"$match": {"shifts.posted": True}},
+        {"$replaceRoot": {"newRoot": "$shifts"}},
+    ]
+
+    def take_shift(self, shift_id: str, user_id: str):
+        pass
+        # TODO 1. find the shift by the shift_id
+        shift_id = str(shift_id)
+        user = self.users_collection.find_one({"_id": ObjectId(user_id)})
+
+        if not user:
+            return False
+
+        username = user.get('username', 'Unknown')
+
+        # 2. set the 'posted' field to False
+        result = self.schedules_collection.update_one(
+            {"shifts._id": shift_id, "shifts.posted": True},
+            {
+                "$set": {
+                    "shifts.$.posted": False,
+                    "shifts.$.employee_id": user_id,
+                    "shifts.$.employee_name": username
+                }
+            }
+        )
+        # 3. update the employee_id field to the user_id
+        return result.modified_count > 0
