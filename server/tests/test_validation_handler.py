@@ -53,3 +53,17 @@ class TestValidationHandler:
         ]
         for xss in xss_inputs:
             assert ValidationHandler.validate_user_input(xss) is False
+
+    def test_validate_input_special_characters(self):
+        """Test that special characters are blocked"""
+        special_characters = [
+            'user"quote',
+            "user|command",
+            "user;command",
+            "user&command",
+            "user$variable",
+            "user\\backslash"
+        ]
+
+        for special_character in special_characters:
+            assert ValidationHandler.validate_user_input(special_character) is False
