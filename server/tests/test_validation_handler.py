@@ -38,6 +38,7 @@ class TestValidationHandler:
             "admin'||'1'='1",
             "' OR 1=1--",
             "1' OR '1'='1'--",
-            "' OR 'x'='x",
-
+            "' OR 'x'='x"
         ]
+        for malicious in malicious_inputs:
+            assert ValidationHandler.validate_user_input(malicious) is False
