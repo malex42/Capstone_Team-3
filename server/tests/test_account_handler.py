@@ -12,4 +12,9 @@ from handlers.exceptions.exceptions import UserAlreadyExistsError
 
 class MockDatabaseHandler:
     def __init__(self):
+        self.client = MongoClient()
+        self.database = self.client['test_db']
+
+@pytest.fixture
+
 
