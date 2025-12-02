@@ -16,5 +16,8 @@ class MockDatabaseHandler:
         self.database = self.client['test_db']
 
 @pytest.fixture
+def db_handler():
+    """Create a mock database handler"""
+    return MockDatabaseHandler()
 
 
