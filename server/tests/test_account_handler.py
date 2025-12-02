@@ -24,3 +24,15 @@ def db_handler():
 def password_handler():
     """Create a mock password handler"""
     return PasswordHandler()
+
+@pytest.fixture
+def account_handler(db_handler, password_handler):
+    """Create a mock account handler"""
+    return AccountHandler(db_handler, password_handler)
+
+@pytest.fixture
+def clean_db(account_handler):
+    """Clean the database before and after each test"""
+    account_handler.users_collection.delete_many({})
+    yield
+    account_handler.users_collection.delete_many({})
