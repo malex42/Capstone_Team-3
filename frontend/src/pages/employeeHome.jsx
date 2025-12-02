@@ -333,7 +333,9 @@ useEffect(() => {
             <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/myPayIcon.png" alt="Pay" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666'  }}>My pay</div>
+                <div style={{ fontWeight: 700, color: '#666'  }}
+                     onClick={() => navigate("/timeSheet")}>My pay</div>
+                
               </div>
             </div>
           </div>

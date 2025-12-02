@@ -5,6 +5,8 @@ import CreateBusiness from './pages/createBusiness.jsx'
 import EmployeeHome from './pages/employeeHome.jsx'
 import ManagerHome from './pages/managerHome.jsx'
 import ManagerScheduleEditor from './pages/schedTools.jsx'
+import TimeSheet from './pages/timesheet.jsx'
+import Alert from './pages/alert.jsx'
 import './App.css'
 
 function App() {
@@ -32,6 +34,12 @@ function App() {
 
         {/* Manager Schedule tools page */}
         <Route path="/schedules" element={<ManagerScheduleEditor />} />
+
+        {/* Timesheet page */}
+        <Route path="/timeSheet" element={<TimeSheet />} />
+
+        {/* Alert page */}
+        <Route path="/alert" element={<Alert />} />
 
       </Routes>
     </Router>
