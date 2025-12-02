@@ -20,4 +20,7 @@ def db_handler():
     """Create a mock database handler"""
     return MockDatabaseHandler()
 
-
+@pytest.fixture
+def password_handler():
+    """Create a mock password handler"""
+    return PasswordHandler()
