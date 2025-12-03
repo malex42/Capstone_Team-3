@@ -88,10 +88,10 @@ class ScheduleHandler:
         # Add a 'posted' field to the shift
         shift.update({'posted': False})
 
-        username = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['username']
+        name = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['name']
 
         # Add employee name field to the shift
-        shift.update({'employee_name': username})
+        shift.update({'employee_name': name})
 
         if self._insert_shift(schedule_id=schedule_id, shift=shift):
             return True
@@ -129,10 +129,7 @@ class ScheduleHandler:
             }
         )
 
-        if result.modified_count > 0:
-            return True
-        else:
-            return False
+        return True
 
 
 
@@ -172,7 +169,7 @@ class ScheduleHandler:
         if not user:
             return False
 
-        username = user.get('username', 'Unknown')
+        name = user.get('name', 'Unknown')
 
         result = self.schedules_collection.update_one(
             {"shifts._id": shift_id},
@@ -180,7 +177,7 @@ class ScheduleHandler:
                 "$set": {
                     "shifts.$.posted": False,
                     "shifts.$.employee_id": user_id,
-                    "shifts.$.employee_name": username
+                    "shifts.$.employee_name": name
                 }
             }
         )

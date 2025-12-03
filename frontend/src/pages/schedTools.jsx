@@ -4,27 +4,25 @@ import '@/styles/homePage.css';
 import '@/styles/auth.css';
 
 import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
+import { ObjectId } from 'bson';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
 import { getHomePage, getBusinessCode, authenticatedRequest } from '@/lib/api';
-
 import { useNavigate } from "react-router-dom";
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
 export default function ManagerScheduleEditor() {
-
   const navigate = useNavigate();
   const [businessName, setBusinessName] = useState('-');
   const businessCode = getBusinessCode();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
-
   const [showShiftEditor, setShowShiftEditor] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -33,19 +31,18 @@ export default function ManagerScheduleEditor() {
   const [scheduleId, setScheduleId] = useState('');
   const [editingShift, setEditingShift] = useState(null);
   const isEditing = Boolean(editingShift?._id);
-
   const today = useMemo(() => new Date(), []);
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1);
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [schedules, setSchedules] = useState([]);
 
+  const canEditShifts = Boolean(scheduleId);
 
   const HEADER_HEIGHT = 84;
   const LEFT_NAV_WIDTH = 260;
   const HORIZONTAL_GAP = 24;
   const VERTICAL_PADDING = 32;
   const PANEL_WIDTH = 400;
-
   const [calendarWidth, setCalendarWidth] = useState(600);
   const [calendarHeight, setCalendarHeight] = useState(520);
 
@@ -62,13 +59,7 @@ export default function ManagerScheduleEditor() {
           <div
             key={color}
             className={`clock clock--${color}`}
-            style={{
-              position: "fixed",
-              top: top,
-              left: left,
-              zIndex: -9999,
-              pointerEvents: "none",
-            }}
+            style={{ position: "fixed", top, left, zIndex: -9999, pointerEvents: "none" }}
           >
             <i />
           </div>
@@ -77,127 +68,74 @@ export default function ManagerScheduleEditor() {
     );
   }
 
+  const scheduleExists = (year, month) => schedules.some(s => s.year === year && s.month === month);
 
-    const scheduleExists = (year, month) => {
-      return schedules.some(s => s.year === year && s.month === month);
-    };
-
-
-  const dayPropGetter = (date) => {
-  const isSelected =
-    date.toDateString() === selectedDate.toDateString();
-
-  return {
-    style: isSelected
-      ? {
-          background: 'rgba(0, 123, 255, 0.25)', // light highlight
-          borderRadius: '6px'
-        }
+  const dayPropGetter = (date) => ({
+    style: date.toDateString() === selectedDate.toDateString()
+      ? { background: 'rgba(0, 123, 255, 0.25)', borderRadius: '6px' }
       : {}
+  });
+
+  const exitShiftEditor = async () => {
+    await refreshSchedule();
+    setEditingShift(null);
+    setShowShiftEditor(false);
+    setShiftStart('');
+    setShiftEnd('');
+    setSelectedEmployee('');
   };
-};
 
-   const exitShiftEditor = async () => {
-      await refreshSchedule();
-      setEditingShift(null);
-      setShowShiftEditor(false);
-    };
+  const createSchedule = async (year, month) => {
+    await authenticatedRequest("/api/manager/schedules/new", {
+      method: "POST",
+      body: { year, month }
+    });
+    setSchedules(prev => [...prev, { year, month }]);
+  };
 
-    const createSchedule = async (year, month) => {
-      const res = await authenticatedRequest("/api/manager/schedules/new", {
-        method: "POST",
-        body: { year, month }
+  const refreshSchedule = async () => {
+    try {
+      const data = await getHomePage();
+
+      if (!data.schedule_id) {
+        await createSchedule(viewYear, viewMonth);
+        return refreshSchedule();
+      }
+
+      setScheduleId(data.schedule_id);
+      setBusinessName(data.business_name || '');
+
+      const mapped = (data.shifts || []).map((s, idx) => {
+        const start = new Date(s.start);
+        const end = new Date(s.end);
+        return {
+          id: s._id ?? idx,
+          _id: s._id,
+          employee_id: s.employee_id,
+          title: `${(s.employee_name ?? '').slice(0,10).toUpperCase()}: ${start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`,
+          start,
+          end,
+          allDay: false,
+        };
       });
 
-      setSchedules(prev => [...prev, { year, month }]);
-    };
-
-
-    const goPrevMonth = async () => {
-      let m = viewMonth - 1;
-      let y = viewYear;
-      if (m === 0) {
-        m = 12;
-        y--;
-      }
-
-      if (!scheduleExists(y, m)) {
-        await createSchedule(y, m);
-      }
-
-      setViewMonth(m);
-      setViewYear(y);
-    };
-
-    const goNextMonth = async () => {
-      let m = viewMonth + 1;
-      let y = viewYear;
-      if (m === 13) {
-        m = 1;
-        y++;
-      }
-
-      if (!scheduleExists(y, m)) {
-        await createSchedule(y, m);
-      }
-
-      setViewMonth(m);
-      setViewYear(y);
-    };
-
-    const activeSchedule = schedules.find(
-      s => s.month === viewMonth && s.year === viewYear
-    );
-
-    const shifts = activeSchedule?.shifts || [];
-
-
-  const refreshSchedule = async (schedule = null) => {
-  try {
-    const data = await getHomePage(); // or fetch shifts for specific schedule if API supports
-    const mapped = (data.shifts || []).map((s, idx) => {
-      setBusinessName(data.business_name || '');
-      setScheduleId(data.schedule_id || '');
-      let start = new Date(s.start);
-      let end = new Date(s.end);
-      const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-      const formattedEnd = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-
-      return {
-        id: s._id ?? idx,
-        _id: s._id,
-        employee_id: s.employee_id,
-        title: `${(s.employee_name ?? '').slice(0,10).toUpperCase()}: ${formattedStart} - ${formattedEnd}`,
-        start,
-        end,
-        allDay: false,
-      };
-    });
-
-    setEvents(mapped);
-  } catch (err) {
-    console.error("Failed to refresh schedule:", err);
-  }
-};
-
-
-
-  useEffect(() => {
-  const loadSchedules = async () => {
-    try {
-      const data = await authenticatedRequest("/api/manager/schedules");
-      // Extract the array
-      setSchedules(data.schedules || []);
-      console.log("Loaded schedules:", data.schedules);
+      setEvents(mapped);
     } catch (err) {
-      console.error("Failed to load schedules:", err);
+      console.error("Failed to refresh schedule:", err);
     }
   };
 
-  loadSchedules();
-}, []);
-
-
+  useEffect(() => {
+    const loadSchedules = async () => {
+      try {
+        const data = await authenticatedRequest("/api/manager/schedules");
+        setSchedules(data.schedules || []);
+      } catch (err) {
+        console.error("Failed to load schedules:", err);
+      }
+    };
+    loadSchedules();
+  }, []);
 
   useEffect(() => {
     function computeSize() {
@@ -214,11 +152,9 @@ export default function ManagerScheduleEditor() {
     return () => window.removeEventListener('resize', computeSize);
   }, []);
 
-
-    useEffect(() => {
-      refreshSchedule().finally(() => setLoading(false));
-    }, []);
-
+  useEffect(() => {
+    refreshSchedule().finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     if (!showShiftEditor) return;
@@ -233,11 +169,7 @@ export default function ManagerScheduleEditor() {
     fetchEmployees();
   }, [showShiftEditor]);
 
-
-  const eventsForSelectedDate = events.filter(e => {
-    const eDate = new Date(e.start);
-    return eDate.toDateString() === selectedDate.toDateString();
-  });
+  const eventsForSelectedDate = events.filter(e => new Date(e.start).toDateString() === selectedDate.toDateString());
 
   const styles = {
     root: { position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', padding: 18, background: 'transparent', overflow: 'hidden' },
@@ -259,14 +191,8 @@ export default function ManagerScheduleEditor() {
       <ClockBackground />
 
       <header style={styles.header}>
-        <div style={{ ...styles.headerLeft, cursor: "pointer" }}
-             onClick={() => navigate("/manager-home")}
-        >
-          <img
-            src="/img/logo.png"
-            alt="Logo"
-            style={{ width: 90, height: 90, objectFit: "contain" }}
-          />
+        <div style={{ ...styles.headerLeft, cursor: "pointer" }} onClick={() => navigate("/manager-home")}>
+          <img src="/img/logo.png" alt="Logo" style={{ width: 90, height: 90, objectFit: "contain" }} />
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <div style={styles.headerTitle}>Good Work</div>
@@ -304,216 +230,126 @@ export default function ManagerScheduleEditor() {
           </div>
         </aside>
 
-        {/* Panel for date + shifts */}
+        {/* Left Panel */}
+        <div style={styles.detailsPanel}>
+          {showShiftEditor ? (
+            <div style={styles.panelCard}>
+              <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>
+                {editingShift ? 'Edit Shift' : 'Add Shift'}
+              </div>
 
-<div style={styles.detailsPanel}>
-  {showShiftEditor ? (
-    <div style={styles.panelCard}>
-    <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>
-      {editingShift ? 'Edit Shift' : 'Add Shift'}
-    </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <label>Start Time</label>
+                      <input
+                        type="time"
+                        value={shiftStart}
+                        onChange={(e) => setShiftStart(e.target.value)}
+                        style={{ padding: '6px', borderRadius: 6, border: '1px solid #ccc', backgroundColor: '#fff', color: '#000' }}
+                      />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <label>Start Time</label>
-        <input
-          type="time"
-          value={shiftStart}
-          onChange={(e) => setShiftStart(e.target.value)}
-          style={{
-            padding: '6px',
-            borderRadius: 6,
-            border: '1px solid #ccc',
-            backgroundColor: '#fff',
-            color: '#000'
-          }}
-      />
+                      <label>End Time</label>
+                      <input
+                        type="time"
+                        value={shiftEnd}
+                        onChange={(e) => setShiftEnd(e.target.value)}
+                        style={{ padding: '6px', borderRadius: 6, border: '1px solid #ccc', backgroundColor: '#fff', color: '#000' }}
+                      />
 
+                      <label>Employee</label>
+                      <select
+                        value={selectedEmployee}
+                        onChange={(e) => setSelectedEmployee(e.target.value)}
+                        style={{ padding: '6px', borderRadius: 6, border: '1px solid #ccc', backgroundColor: '#fff', color: '#000' }}
+                      >
+                        <option value="">Select Employee</option>
+                        {employees.map(emp => (
+                          <option key={emp.employee_id} value={emp.employee_id}>
+                            {emp.name || emp.username || 'Unnamed'}
+                          </option>
+                        ))}
+                      </select>
 
-        <label>End Time</label>
-        <input
-          type="time"
-          value={shiftEnd}
-          onChange={(e) => setShiftEnd(e.target.value)}
-          style={{ padding: '6px', borderRadius: 6, border: '1px solid #ccc', backgroundColor: '#fff', color: '#000'}}
-        />
+              <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                <button
+                  onClick={async () => {
+                    if (!canEditShifts) return;
+                    try {
+                      const shift = {
+                        employee_id: selectedEmployee,
+                        start: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${shiftStart}:00`).toISOString(),
+                        end: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${shiftEnd}:00`).toISOString(),
+                      };
+                      if (isEditing) shift._id = editingShift._id;
 
-        <label>Employee</label>
-        <select
-          value={selectedEmployee}
-          onChange={(e) => setSelectedEmployee(e.target.value)}
-          style={{ padding: '6px', borderRadius: 6, border: '1px solid #ccc', backgroundColor: '#fff', color: '#000' }}
-        >
-          <option value="">Select Employee</option>
-          {employees.map((emp) => (
-            <option key={emp.employee_id} value={emp.employee_id}>
-              {emp.name || emp.username || 'Unnamed'}
-            </option>
-          ))}
-        </select>
-
-        <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-      <button
-      onClick={async () => {
-        try {
-          const shift = {
-            employee_id: selectedEmployee,
-            start: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${shiftStart}:00`).toISOString(),
-            end: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${shiftEnd}:00`).toISOString(),
-          };
-
-          const url = isEditing
-            ? '/api/manager/schedules/edit_shift'
-            : '/api/manager/schedules/add_shift';
-
-          // If editing add the _id. If adding, do NOT include _id
-          if (isEditing) {
-            shift._id = editingShift._id;
-          }
-
-          await authenticatedRequest(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: {
-              schedule_id: scheduleId,
-              shift,
-            },
-          });
-
-          await exitShiftEditor();
-
-        } catch (err) {
-          console.error(err);
-        }
-      }}
-      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}
-    >
-      Save
-    </button>
-
-
-
-          <button
-          onClick={async () => {
-            try {
-              if (isEditing) {
-                // DELETE existing shift
-                await authenticatedRequest('/api/manager/schedules/delete_shift', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: {
-                    schedule_id: scheduleId,
-                    shift_id: editingShift._id,
-                  },
-                });
-              }
-
-              // Whether adding OR editing, exit returns to overview
-              await exitShiftEditor();
-
-              // Clear input fields when canceling a new shift
-              setSelectedEmployee('');
-              setShiftStart('');
-              setShiftEnd('');
-              setEditingShift(null);
-
-            } catch (err) {
-              console.error(err);
-            }
-          }}
-
-            style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#dc3545', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}
-        >
-          Delete
-        </button>
-
-        </div>
-
-        </div>
-      </div>
-  ) : (
-    <>
-      <div style={styles.panelCard}>
-        <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>
-          {format(selectedDate, 'eeee, LLLL d, yyyy')}
-        </div>
-
-        {eventsForSelectedDate.length === 0 ? (
-          <div style={{ color: '#666' }}>No shifts for this date.</div>
-        ) : (
-          eventsForSelectedDate.map((e) => (
-            <div
-              key={e.id}
-              style={{
-                padding: '6px 8px',
-                borderRadius: 6,
-                background: '#007bff',
-                color: '#fff',
-                marginBottom: 6,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <span>{e.title}</span>
-              <button
-                  style={{
-                    background: 'rgba(255,255,255,0.2)',
-                    border: 'none',
-                    borderRadius: 4,
-                    padding: '2px 6px',
-                    color: '#fff',
-                    cursor: 'pointer',
+                      const url = isEditing ? '/api/manager/schedules/edit_shift' : '/api/manager/schedules/add_shift';
+                      await authenticatedRequest(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: { schedule_id: scheduleId, shift } });
+                      await exitShiftEditor();
+                    } catch (err) { console.error(err); }
                   }}
-                  onClick={() => {
-                    setShowShiftEditor(true);
-                    setEditingShift(e);
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: canEditShifts ? 'pointer' : 'not-allowed' }}
+                  disabled={!canEditShifts}
+                >Save</button>
 
-                    // pre-fill fields
-                    setSelectedEmployee(e.employee_id);
-                    setShiftStart(format(new Date(e.start), 'HH:mm'));
-                    setShiftEnd(format(new Date(e.end), 'HH:mm'));
+                <button
+                  onClick={async () => {
+                    if (!isEditing) return exitShiftEditor();
+                    try {
+                      await authenticatedRequest('/api/manager/schedules/delete_shift', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: { schedule_id: scheduleId, shift_id: editingShift._id },
+                      });
+                      await exitShiftEditor();
+                    } catch (err) { console.error(err); }
                   }}
-                >
-                  Edit
-                </button>
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#dc3545', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                >Delete</button>
+              </div>
+              </div>
             </div>
-          ))
-        )}
-      </div>
+          ) : (
+            <>
+              <div style={styles.panelCard}>
+                <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>
+                  {format(selectedDate, 'eeee, LLLL d, yyyy')}
+                </div>
 
-      <div style={styles.buttonContainer}>
-        <button
-          onClick={() => setShowShiftEditor(true)}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 8,
-            background: '#28a745',
-            color: '#fff',
-            fontWeight: 600,
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          Add Shift
-        </button>
-      </div>
-    </>
-  )}
-</div>
+                {eventsForSelectedDate.length === 0 ? (
+                  <div style={{ color: '#666' }}>No shifts for this date.</div>
+                ) : (
+                  eventsForSelectedDate.map(e => (
+                    <div key={e.id} style={{ padding: '6px 8px', borderRadius: 6, background: '#007bff', color: '#fff', marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>{e.title}</span>
+                      <button
+                        style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 4, padding: '2px 6px', color: '#fff', cursor: canEditShifts ? 'pointer' : 'not-allowed' }}
+                        disabled={!canEditShifts}
+                        onClick={() => {
+                          if (!canEditShifts) return;
+                          setShowShiftEditor(true);
+                          setEditingShift(e);
+                          setSelectedEmployee(e.employee_id);
+                          setShiftStart(format(new Date(e.start), 'HH:mm'));
+                          setShiftEnd(format(new Date(e.end), 'HH:mm'));
+                        }}
+                      >Edit</button>
+                    </div>
+                  ))
+                )}
+              </div>
 
-
+              <div style={styles.buttonContainer}>
+                <button onClick={() => canEditShifts && setShowShiftEditor(true)}
+                        style={{ padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: canEditShifts ? 'pointer' : 'not-allowed' }}
+                        disabled={!canEditShifts}
+                >Add Shift</button>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Calendar */}
         <main style={styles.calendarContainer}>
           <div style={styles.calendarCard}>
-            <style>{`
-              .manager-calendar .rbc-month-view .rbc-date-cell { color: #222 !important; }
-              .manager-calendar .rbc-header { color: #222 !important; font-weight: 600; background: transparent !important; }
-              .manager-calendar .rbc-header a { color: #222 !important; text-decoration: none; }
-              .manager-calendar .rbc-event { background-color: #007bff !important; color: #fff !important; border: none !important; border-radius: 6px; padding: 2px 4px; font-size: 0.85em; }
-              .manager-calendar .rbc-month-view .rbc-row .rbc-day-slot { padding-bottom: 6px !important; }
-            `}</style>
-
             <div style={{ fontSize: 18, fontWeight: 700, color: 'black', marginBottom: 8 }}>
               {format(selectedDate, 'LLLL yyyy')}
             </div>
@@ -536,42 +372,17 @@ export default function ManagerScheduleEditor() {
               onNavigate={async (date) => {
                 const year = date.getFullYear();
                 const month = date.getMonth() + 1;
-
                 setSelectedDate(date);
                 setViewMonth(month);
                 setViewYear(year);
 
-                // Check if schedule already exists locally
-                let schedule = schedules.find(s => s.year === year && s.month === month);
-
-                if (!schedule) {
-                  try {
-                    const res = await authenticatedRequest("/api/manager/schedules/new", {
-                      method: "POST",
-                      body: { year, month }
-                    });
-                    console.log("Created schedule:", res);
-
-                    // Append new schedule to local schedules
-                    const newSchedule = { year, month };
-                    setSchedules(prev => [...prev, newSchedule]);
-
-                    schedule = newSchedule;
-                  } catch (err) {
-                    console.error("Failed to create schedule:", err);
-                    return;
-                  }
-                }
-
-                // Load shifts for the active schedule
-                await refreshSchedule(schedule);
+                if (!scheduleExists(year, month)) await createSchedule(year, month);
+                await refreshSchedule();
               }}
             />
-
-
           </div>
         </main>
       </div>
-     </div>
+    </div>
   );
 }
