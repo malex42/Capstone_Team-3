@@ -7,7 +7,7 @@ from datetime import datetime
 from handlers.account_handler import AccountHandler
 from handlers.password_handler import PasswordHandler
 from handlers.enums.roles import Role
-from handlers.exceptions.exceptions import UserAlreadyExistsError
+from handlers.exceptions.exceptions import UserAlreadyExistsError, PasswordFormatError
 
 
 class MockDatabaseHandler:
@@ -15,18 +15,9 @@ class MockDatabaseHandler:
         self.client = MongoClient()
         self.database = self.client['test_db']
 
-@pytest.fixture
-def db_handler():
-    """Create a mock database handler"""
-    return MockDatabaseHandler()
 
 @pytest.fixture
-def password_handler():
-    """Create a mock password handler"""
-    return PasswordHandler()
-
-@pytest.fixture
-def account_handler(db_handler, password_handler):
+def account_handler():
     """Create a mock account handler"""
     db_handler = MockDatabaseHandler()
     pd_handler = PasswordHandler()
@@ -35,10 +26,27 @@ def account_handler(db_handler, password_handler):
     handler.users_collection.delete_many({})
     return handler
 
+class TestAccountHandler:
+    """Tests for AccountHandler"""
 
-@pytest.fixture
-def clean_db(account_handler):
-    """Clean the database before and after each test"""
-    account_handler.users_collection.delete_many({})
-    yield
-    account_handler.users_collection.delete_many({})
+    def test_create_user_success(self, account_handler):
+        """Test creating a user successfully"""
+        result = account_handler.create_user(
+            "test_user",
+            "Password123",
+            Role.EMPLOYEE.value,
+            None
+        )
+
+        assert result is True
+
+
+    @pytest.fixture
+    def clean_db(account_handler):
+        """Clean the database before and after each test"""
+        account_handler.users_collection.delete_many({})
+        yield
+        account_handler.users_collection.delete_many({})
+
+
+
