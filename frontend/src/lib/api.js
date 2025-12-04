@@ -83,10 +83,10 @@ export function getEmployeeID() {
 
 
 // ---- API calls aligned to your Flask routes ----
-export function createUser({ username, password, role, code }) {
+export function createUser({ firstName, lastName, username, password, role, code }) {
   return request('/api/auth/register', {
     method: 'POST',
-    body: { username, password, role, ...(code ? { code } : {}) },
+    body: { firstName, lastName, username, password, role, ...(code ? { code } : {}) },
   });
 }
 

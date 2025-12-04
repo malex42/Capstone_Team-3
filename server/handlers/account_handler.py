@@ -13,6 +13,7 @@ from handlers.password_handler import PasswordHandler
 from handlers.validation_handler import ValidationHandler
 from handlers.exceptions.exceptions import UserAlreadyExistsError, PasswordFormatError
 
+
 class AccountHandler:
 
     def __init__(self, db_handler: DatabaseHandler, pw_handler: PasswordHandler):
@@ -39,19 +40,17 @@ class AccountHandler:
         # Ensure field 'business_code' exists
         self.users_collection.create_index([("business_code", 1)], unique=False)
 
-
-    def _insert_user(self, input_username: str, hashed_password: str, role: str, code: str | None, first_name="", last_name=""):
+    def _insert_user(self, name: str, input_username: str, hashed_password: str, role: str, code: str | None):
         """ Helper method to insert user into the database """
 
         user_dict = {
+            "name": name,
             "username": input_username,
             "password": hashed_password,
             "role": role,
             "business_code": code if code is not None else '',
             "created_at": datetime.now(),
-            "first_name": first_name,
-            "last_name": last_name
-     }
+        }
         additional_fields = {}
 
         match role:
@@ -66,7 +65,6 @@ class AccountHandler:
         user_dict.update(additional_fields)
         self.users_collection.insert_one(user_dict)
 
-
     def _get_users_role(self, user: dict):
         """ Helper method to return the role of the user """
         return user['role']
@@ -79,11 +77,13 @@ class AccountHandler:
         """ Retrieve a user document by their username """
         return self.users_collection.find_one({"username": username})
 
-    def create_user(self, input_username: str, input_password: str, role: str, code: str | None) -> bool:
+    def create_user(self, first_name: str, last_name: str, input_username: str, input_password: str, role: str,
+                    code: str | None) -> bool:
         """ Create a new user by validating input, hashing the password, and inserting into the DB """
 
         # Validate input first - protect against attack
-        if ValidationHandler.validate_user_input(input_username) and ValidationHandler.validate_user_input(input_password):
+        if ValidationHandler.validate_user_input(input_username) and ValidationHandler.validate_user_input(
+                input_password):
 
             try:
                 # Check if password fits the required format
@@ -93,8 +93,11 @@ class AccountHandler:
                     hashed_pass = self.pw_handler.hash_password(input_password)
 
                     try:
+                        # Concat first and last name
+                        name = f'{first_name.strip()} {last_name.strip()}'
+
                         # Insert new user document into the DB
-                        self._insert_user(input_username, hashed_pass, role, code)
+                        self._insert_user(name, input_username, hashed_pass, role, code)
                         return True
 
                     except pymongo.errors.DuplicateKeyError:
@@ -121,8 +124,6 @@ class AccountHandler:
                     return True
 
         return False
-
-
 
     # def delete_user(self, input_username: str, input_password: str) -> bool:
     #     """ Delete a user's account after validating their login credentials. """

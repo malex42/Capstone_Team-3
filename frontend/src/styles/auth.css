@@ -1,32 +1,3 @@
-/* Page background + playful blobs similar to the screenshot */
-/*
-.auth-bg {
-  position: relative;
-  background: #fff;
-  overflow: hidden;
-}
-.auth-bg::before,
-.auth-bg::after {
-  pointer-events: none;          // ✅ don't intercept clicks
-  z-index: 0;   
-  content: "";
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(2px);
-  opacity: 0.25;
-}
-.auth-bg::before {
-  width: 32rem; height: 32rem;
-  left: -10rem; bottom: -12rem;
-  background: #8b5cf6; // purple
-  box-shadow: 120px -60px 0 0 #f97316; // orange accent
-}
-.auth-bg::after {
-  width: 28rem; height: 28rem;
-  right: -8rem; top: -6rem;
-  background: #34d399; // green
-}
-*/
 /* Layout wrapper */
 .auth-bg {
   position: relative;
@@ -201,3 +172,7 @@
 
 /* Optional tiny logo */
 .small-logo { width: 120px; }
+
+.rbc-date-cell {
+  color: black !important;
+}

@@ -132,8 +132,7 @@ class BusinessHandler:
             {
                 "employee_id": str(emp.get("_id")),
                 "username": emp.get("username", ""),
-                # "first_name": emp.get("first_name", ""),
-                # "last_name": emp.get("last_name", "")
+                "name": emp.get("name", "")
             }
             for emp in employees
         ]

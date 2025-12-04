@@ -63,7 +63,7 @@ export default function EmployeeHome() {
       setBusinessCode(businessCodeInput.trim());
       localStorage.setItem("businessCode", businessCode.trim());
 
-      navigate("/manager-home");
+      navigate("/employee-home");
     } catch (err) {
       setError(err?.message || "Failed to link business.");
     } finally {
@@ -311,22 +311,25 @@ useEffect(() => {
               </div>
             </div>
 
-<button onClick={() => navigate('/post-shift')}>
-            <div style={{ ...styles.navItem }}>
-              <img style={styles.navIcon} src="/img/postShitfIcon.png" alt="Post Shift" />
+            <div
+              style={{ ...styles.navItem, cursor: "pointer" }}
+              onClick={() => navigate("/post-shift")}
+            >
+              <img style={styles.navIcon} src="/img/arrowIcon.png" alt="Post Shift" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666'  }}>Post Shifts</div>
+                <div style={{ fontWeight: 700, color: "#666" }}>Post Shifts</div>
               </div>
             </div>
-            </button>
-<button onClick={() => navigate('/take-shift')}>
-            <div style={{ ...styles.navItem }}>
+
+            <div
+              style={{ ...styles.navItem, cursor: "pointer" }}
+              onClick={() => navigate("/take-shift")}
+            >
               <img style={styles.navIcon} src="/img/takeShiftIcon.png" alt="Take Shift" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666'  }}>Take Shifts</div>
+                <div style={{ fontWeight: 700, color: "#666" }}>Take Shifts</div>
               </div>
             </div>
-</button>
 
             <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/accountIcon.png" alt="Account" />

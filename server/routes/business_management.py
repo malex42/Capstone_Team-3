@@ -48,6 +48,7 @@ def create_business_endpoint():
 
     return jsonify({"message": "failure, unknown"}), 400
 
+
 def get_all_employees_endpoint():
     """ Endpoint to get all employees """
 
