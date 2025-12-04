@@ -58,4 +58,7 @@ class TestAccountHandler:
         with pytest.raises(UserAlreadyExistsError):
             account_handler.create_user("test_user", "Password456", Role.EMPLOYEE.value, None)
 
-
+    def test_create_user_weak_password_fails(self, account_handler):
+        """Test creating a user fails with weak password"""
+        with pytest.raises(PasswordFormatError):
+            account_handler.create_user("test_user", "weak", Role.EMPLOYEE.value, None)
