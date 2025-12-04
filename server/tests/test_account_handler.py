@@ -84,3 +84,11 @@ class TestAccountHandler:
         result = account_handler.validate_login("test_user", "Password123")
 
         assert result is False
+
+    def test_get_user_role(self, account_handler):
+        """Test getting user role"""
+        account_handler.create_user("manager1", "Password123", Role.MANAGER.value, None)
+
+        role = account_handler.get_user_role("manager1")
+
+        assert role == Role.MANAGER.value
