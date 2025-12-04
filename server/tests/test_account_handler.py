@@ -78,3 +78,9 @@ class TestAccountHandler:
         result = account_handler.validate_login("test_user", "Password456")
 
         assert result is False
+
+    def test_login_nonexistent_user(self, account_handler):
+        """Test login with nonexistent user"""
+        result = account_handler.validate_login("test_user", "Password123")
+
+        assert result is False
