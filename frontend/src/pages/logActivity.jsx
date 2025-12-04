@@ -197,8 +197,9 @@ export default function ManagerHome() {
       <div className="clock clock--orange"><i /></div>
 
       <header style={styles.header}>
-        <div style={styles.headerLeft}>
-          <img src="/img/logo.png" alt="Logo" style={{ width: 90, height: 90, objectFit: 'contain' }} />
+
+        <div style={{ ...styles.headerLeft, cursor: "pointer" }} onClick={() => navigate("/employee-home")}>
+          <img src="/img/logo.png" alt="Logo" style={{ width: 90, height: 90, objectFit: "contain" }} />
         </div>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -221,45 +222,58 @@ export default function ManagerHome() {
       <div style={styles.mainLayout}>
         <aside style={styles.leftNav}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={styles.navItem}>
+
+
+            <div
+            style={{ ...styles.navItem, cursor: "pointer" }}
+              onClick={() => navigate("/log-activity")}
+            >
               <img style={styles.navIcon} src="/img/logActivityIcon.png" alt="Log" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666' }}>Log Activity</div>
               </div>
             </div>
 
-            <div style={styles.navItem} onClick={() => navigate('/schedules')}>
-              <img style={styles.navIcon} src="/img/calenderIcon.png" alt="Schedules" />
+            <div style={{ ...styles.navItem }}>
+              <img style={styles.navIcon} src="/img/calenderIcon.png" alt="My Shifts" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666' }}>Schedules</div>
+                <div style={{ fontWeight: 700, color: '#666'  }}>My Shifts</div>
               </div>
             </div>
 
-            <div style={styles.navItem}>
-              <img style={styles.navIcon} src="/img/monitorActivityIcon.png" alt="Monitor" />
+            <div
+              style={{ ...styles.navItem, cursor: "pointer" }}
+              onClick={() => navigate("/post-shift")}
+            >
+              <img style={styles.navIcon} src="/img/arrowIcon.png" alt="Post Shift" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666' }}>Monitor</div>
+                <div style={{ fontWeight: 700, color: "#666" }}>Post Shifts</div>
               </div>
             </div>
 
-            <div style={styles.navItem} onClick={() => navigate('/alert')}>
-              <img style={styles.navIcon} src="/img/alertIcon.png" alt="Alerts" />
+            <div
+              style={{ ...styles.navItem, cursor: "pointer" }}
+              onClick={() => navigate("/take-shift")}
+            >
+              <img style={styles.navIcon} src="/img/takeShiftIcon.png" alt="Take Shift" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666' }}>Alerts</div>
+                <div style={{ fontWeight: 700, color: "#666" }}>Take Shifts</div>
               </div>
             </div>
 
-            <div style={styles.navItem}>
+            <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/accountIcon.png" alt="Account" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666' }}>Account</div>
+                <div style={{ fontWeight: 700, color: '#666'  }}>Account</div>
               </div>
             </div>
 
-            <div style={styles.navItem}>
+            <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/myPayIcon.png" alt="Pay" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666' }}>Payroll</div>
+                <div style={{ fontWeight: 700, color: '#666'  }}
+                     onClick={() => navigate("/timeSheet")}>My pay</div>
+
               </div>
             </div>
           </div>
@@ -270,7 +284,7 @@ export default function ManagerHome() {
         <main style={{ flex: 1, minWidth: 0 }}>
           <div style={{ padding: 20, borderRadius: 10, background: 'rgba(255,255,255,0.95)', boxShadow: '0 6px 20px rgba(0,0,0,0.04)', height: '100%' }}>
             <header style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 24, fontWeight: 600, color: '#222' }}>Alerts</div>
+              <div style={{ fontSize: 24, fontWeight: 600, color: '#222' }}>Log Activity</div>
             </header>
 
             {/* Activity section using the API */}

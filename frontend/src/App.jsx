@@ -8,7 +8,7 @@ import ManagerScheduleEditor from './pages/schedTools.jsx'
 import PostShift from './pages/postShift.jsx'
 import TakeShift from './pages/takeShift.jsx'   // <-- add this import
 import TimeSheet from './pages/timesheet.jsx'
-import Alert from './pages/alert.jsx'
+import Alert from './pages/logActivity.jsx'
 import './App.css'
 
 function App() {
@@ -40,8 +40,8 @@ function App() {
         {/* Timesheet page */}
         <Route path="/timeSheet" element={<TimeSheet />} />
 
-        {/* Alert page */}
-        <Route path="/alert" element={<Alert />} />
+        {/* Log Activity page */}
+        <Route path="/log-activity" element={<Alert />} />
 
         {/* Post Shift page */}
         <Route path="/post-shift" element={<PostShift />} />
