@@ -62,3 +62,11 @@ class TestAccountHandler:
         """Test creating a user fails with weak password"""
         with pytest.raises(PasswordFormatError):
             account_handler.create_user("test_user", "weak", Role.EMPLOYEE.value, None)
+
+    def test_login_with_correct_password(self, account_handler):
+        """Test login with correct password"""
+        account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
+
+        result = account_handler.validate_login("test_user", "Password123")
+
+        assert result is True
