@@ -42,11 +42,20 @@ class TestAccountHandler:
 
 
     @pytest.fixture
-    def clean_db(account_handler):
-        """Clean the database before and after each test"""
-        account_handler.users_collection.delete_many({})
-        yield
-        account_handler.users_collection.delete_many({})
+    def test_create_user_appears_in_database(self, account_handler):
+        """Test creating a user appears in database"""
+        account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
 
+        user = account_handler.find_user_by_name("test_user")
+
+        assert user is not None
+        assert user['username'] == "test_user"
+
+    def test_create_duplicate_user_fails(self, account_handler):
+        """Test creating a duplicate user fails"""
+        account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
+
+        with pytest.raises(UserAlreadyExistsError):
+            account_handler.create_user("test_user", "Password456", Role.EMPLOYEE.value, None)
 
 
