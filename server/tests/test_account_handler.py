@@ -70,3 +70,11 @@ class TestAccountHandler:
         result = account_handler.validate_login("test_user", "Password123")
 
         assert result is True
+
+    def test_login_with_wrong_password(self, account_handler):
+        """Test login with wrong password"""
+        account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
+
+        result = account_handler.validate_login("test_user", "Password456")
+
+        assert result is False
