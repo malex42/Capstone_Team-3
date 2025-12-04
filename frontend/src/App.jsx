@@ -5,6 +5,8 @@ import CreateBusiness from './pages/createBusiness.jsx'
 import EmployeeHome from './pages/employeeHome.jsx'
 import ManagerHome from './pages/managerHome.jsx'
 import ManagerScheduleEditor from './pages/schedTools.jsx'
+import PostShift from './pages/postShift.jsx'
+import TakeShift from './pages/takeShift.jsx'   // <-- add this import
 import TimeSheet from './pages/timesheet.jsx'
 import Alert from './pages/alert.jsx'
 import './App.css'
@@ -40,6 +42,11 @@ function App() {
 
         {/* Alert page */}
         <Route path="/alert" element={<Alert />} />
+
+        {/* Post Shift page */}
+        <Route path="/post-shift" element={<PostShift />} />
+        {/* Take Shift page */}
+        <Route path="/take-shift" element={<TakeShift />} />
 
       </Routes>
     </Router>

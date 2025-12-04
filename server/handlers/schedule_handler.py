@@ -85,10 +85,13 @@ class ScheduleHandler:
         # Add a unique _id field to the shift
         shift.update({'_id': str(ObjectId())})
 
-        username = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['username']
+        # Add a 'posted' field to the shift
+        shift.update({'posted': False})
+
+        name = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['name']
 
         # Add employee name field to the shift
-        shift.update({'employee_name': username})
+        shift.update({'employee_name': name})
 
         if self._insert_shift(schedule_id=schedule_id, shift=shift):
             return True
@@ -126,8 +129,60 @@ class ScheduleHandler:
             }
         )
 
+        return True
+
+
+
+    def post_shift(self, shift_id: str):
+        shift_id = shift_id
+        result = self.schedules_collection.update_one(
+            {"shifts._id": shift_id},
+            {"$set": {"shifts.$.posted": True}}
+        )
+
         if result.modified_count > 0:
             return True
-        else:
+        return False
+
+
+    def get_posted_shifts(self, business_code: str):
+        # Find all schedules for this business
+        schedules = self.schedules_collection.find(
+            {"business_code": business_code},
+            {"shifts": 1, "_id": 0}
+        )
+
+        posted_shifts = []
+
+        for schedule in schedules:
+            for shift in schedule.get("shifts", []):
+                if shift.get("posted") is True:
+                    posted_shifts.append(shift)
+
+        return posted_shifts
+
+
+    def take_shift(self, shift_id: str, user_id: str):
+        shift_id = shift_id
+        user = self.users_collection.find_one({"_id": ObjectId(user_id)})
+
+        if not user:
             return False
 
+        name = user.get('name', 'Unknown')
+
+        result = self.schedules_collection.update_one(
+            {"shifts._id": shift_id},
+            {
+                "$set": {
+                    "shifts.$.posted": False,
+                    "shifts.$.employee_id": user_id,
+                    "shifts.$.employee_name": name
+                }
+            }
+        )
+
+        if result.modified_count > 0:
+            return True
+
+        return False

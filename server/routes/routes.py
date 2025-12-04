@@ -12,8 +12,9 @@ from routes.account_management import create_user_endpoint, login_endpoint
 from routes.business_management import create_business_endpoint, link_business_endpoint
 from routes.home_management import populate_home_endpoint
 from routes.schedule_management import new_schedule_endpoint, get_schedules_endpoint, add_shift_endpoint, \
-    delete_shift_endpoint, edit_shift_endpoint
+    delete_shift_endpoint, edit_shift_endpoint, get_posted_shifts_endpoint, take_shift_endpoint, post_shift_endpoint
 
+from routes.business_management import get_all_employees_endpoint
 
 def setup_routes(app, account_handler: AccountHandler, business_handler: BusinessHandler,
                  schedule_handler: ScheduleHandler):
@@ -51,6 +52,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
 
     app.add_url_rule('/api/manager/new/business', view_func=create_business_endpoint, methods=['POST'])
     app.add_url_rule('/api/link_business', view_func=link_business_endpoint, methods=['POST'])
+    app.add_url_rule('/api/manager/business/employees', view_func=get_all_employees_endpoint, methods=['GET'])
 
     app.add_url_rule('/api/home', view_func=populate_home_endpoint, methods=['GET'])
 
@@ -59,6 +61,13 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/manager/schedules/add_shift', view_func=add_shift_endpoint, methods=['POST'])
     app.add_url_rule('/api/manager/schedules/delete_shift', view_func=delete_shift_endpoint, methods=['POST'])
     app.add_url_rule('/api/manager/schedules/edit_shift', view_func=edit_shift_endpoint, methods=['POST'])
+
+    app.add_url_rule('/api/employee/shifts', view_func=get_posted_shifts_endpoint, methods=['GET'])
+    app.add_url_rule('/api/employee/post_shift', view_func=post_shift_endpoint, methods=['POST'])
+    app.add_url_rule('/api/employee/take_shift', view_func=take_shift_endpoint, methods=['POST'])
+
+
+
 
 
 '''FOR LATER REFERENCE - IGNORE'''

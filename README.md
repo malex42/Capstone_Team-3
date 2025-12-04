@@ -42,10 +42,20 @@ Before running the server, you need the following files:
 ### Running the Server
 1. Open a terminal and navigate to the server directory:
 ``cd server``
+
+Optional Virtual Enivronment (do this before step 2):
+``python3 -m venv venv``
+``source venv/bin/activate``
+
 2. Install the required Python packages:
 ``pip install -r requirements.txt``
+or
+``pip3 install -r requirements.txt``
+
 3. Start the server:
 ``python3 main.py``
+
+
 
 The server will start running on the default port (3333).
 
