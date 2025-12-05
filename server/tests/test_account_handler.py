@@ -41,7 +41,7 @@ class TestAccountHandler:
         assert result is True
 
 
-    @pytest.fixture
+
     def test_create_user_appears_in_database(self, account_handler):
         """Test creating a user appears in database"""
         account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
