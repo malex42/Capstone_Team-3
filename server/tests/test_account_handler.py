@@ -92,3 +92,10 @@ class TestAccountHandler:
         role = account_handler.get_user_role("manager1")
 
         assert role == Role.MANAGER.value
+
+    def test_password_is_hashed(self, account_handler):
+        """Test passwords not stored in plain text"""
+        password = "Password123"
+        account_handler.create_user("test_user", password, Role.EMPLOYEE.value, None)
+        user = account_handler.find_user_by_name("test_user")
+        assert user['password'] != password
