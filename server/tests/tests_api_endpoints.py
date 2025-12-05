@@ -49,7 +49,11 @@ class TestLoginEndpoint:
     """Tests for Login Endpoint"""
     def test_login_success(self, client):
         """Test login success endpoint"""
-        client.post('/api/auth/register', json={'username': 'test_user', 'password': 'Password123', 'role':'employee'})
+        client.post('/api/auth/register', json={
+            'username': 'test_user',
+            'password': 'Password123',
+            'role':'employee'
+        })
 
         response = client.post('/api/auth/login', json={
             'username': 'test_user',
