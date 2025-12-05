@@ -50,3 +50,13 @@ class TestLoginEndpoint:
     def test_login_success(self, client):
         """Test login success endpoint"""
         client.post('/api/auth/register', json={'username': 'test_user', 'password': 'Password123', 'role':'employee'})
+
+        response = client.post('/api/auth/login', json={
+            'username': 'test_user',
+            'password': 'Password123'
+        })
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['message'] == 'Success'
+        assert 'JWT' in data
+        
