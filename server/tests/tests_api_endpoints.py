@@ -81,3 +81,10 @@ class TestLoginEndpoint:
             'password': 'Password123'
         })
         assert response.status_code == 401
+
+    def test_login_missing_username(self, client):
+        """Test login with missing username"""
+        response = client.post('/api/auth/login', json={'password': 'Password123'})
+        assert response.status_code == 400
+
+        
