@@ -99,3 +99,11 @@ class TestAccountHandler:
         account_handler.create_user("test_user", password, Role.EMPLOYEE.value, None)
         user = account_handler.find_user_by_name("test_user")
         assert user['password'] != password
+
+    def test_user_has_business_code(self, account_handler):
+        """Test user has business code"""
+        account_handler.create_user("employee1", "Password123", Role.EMPLOYEE.value, "BIZ123")
+
+        user = account_handler.find_user_by_name("employee1")
+
+        assert user['business_code'] == "BIZ123"
