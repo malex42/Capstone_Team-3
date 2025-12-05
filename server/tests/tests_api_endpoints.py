@@ -59,4 +59,18 @@ class TestLoginEndpoint:
         data = json.loads(response.data)
         assert data['message'] == 'Success'
         assert 'JWT' in data
-        
+
+    def test_login_wrong_password(self, client):
+        """Test login with wrong password"""
+        client.post('/api/auth/register', json={
+            'username': 'test_user',
+            'password': 'Password123',
+            'role': 'employee'
+        })
+
+        response = client.post('/api/auth/login', json={
+            'username': 'test_user',
+            'password': 'WrongPassword456'
+        })
+        assert response.status_code == 401
+
