@@ -91,4 +91,10 @@ class TestLoginEndpoint:
         response = client.post('/api/auth/login', json={'password': 'Password123'})
         assert response.status_code == 400
 
-        
+    def test_login_missing_password(self, client):
+        """Test login with missing password"""
+        response = client.post('/api/auth/login', json={
+            'username': 'test_user'
+        })
+
+        assert response.status_code == 400
