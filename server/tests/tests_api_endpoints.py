@@ -98,3 +98,20 @@ class TestLoginEndpoint:
         })
 
         assert response.status_code == 400
+
+class TestProtectedEndpoint:
+    """Tests for Protected Endpoint"""
+
+    def test_home_requires_auth(self, client):
+        """Test home requires auth"""
+        response = client.get('/api/home')
+        assert response.status_code == 401
+
+    def test_create_business_requires_auth(self, client):
+        """Test create business requires auth"""
+        response = client.post('/api/manager/new/business', json={
+            'name': 'Test Business',
+            'hours': {}
+        })
+
+        assert response.status_code == 401
