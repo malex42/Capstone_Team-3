@@ -6,6 +6,7 @@ from flask_jwt_extended import JWTManager
 
 from handlers.account_handler import AccountHandler
 from handlers.business_handler import BusinessHandler
+from handlers.db_handler import DatabaseHandler
 from handlers.schedule_handler import ScheduleHandler
 from handlers.password_handler import PasswordHandler
 from mongomock import MongoClient
