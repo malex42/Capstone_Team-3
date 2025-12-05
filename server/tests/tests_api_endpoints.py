@@ -74,3 +74,10 @@ class TestLoginEndpoint:
         })
         assert response.status_code == 401
 
+    def test_login_user_not_exist(self, client):
+        """Test login with user not exist"""
+        response = client.post('/api/auth/login', json={
+            'username': 'not_exist',
+            'password': 'Password123'
+        })
+        assert response.status_code == 401
