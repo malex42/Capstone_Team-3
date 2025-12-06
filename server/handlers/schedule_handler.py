@@ -88,9 +88,14 @@ class ScheduleHandler:
         # Add a 'posted' field to the shift
         shift.update({'posted': False})
 
-        name = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['name']
+        # Add a clocked_in field to the shift
+        shift.update({'clocked_in': False})
+
+        # Add a completed field to the shift
+        shift.update({'completed': False})
 
         # Add employee name field to the shift
+        name = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['name']
         shift.update({'employee_name': name})
 
         if self._insert_shift(schedule_id=schedule_id, shift=shift):

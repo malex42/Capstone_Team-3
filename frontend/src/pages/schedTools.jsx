@@ -41,7 +41,6 @@ export default function ManagerScheduleEditor() {
   const HEADER_HEIGHT = 84;
   const LEFT_NAV_WIDTH = 260;
     const navItems = [
-      { icon: "logActivityIcon.png", label: "Log Activity", path: "/manager-home" },
       { icon: "calenderIcon.png", label: "Schedules", path: "/schedules" },
       { icon: "monitorActivityIcon.png", label: "Monitor", path: "/monitoring" },
       { icon: "alertIcon.png", label: "Alerts" },

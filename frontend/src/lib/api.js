@@ -99,13 +99,52 @@ export function loginUser({ username, password }) {
 
 
 // For any authed call
-export function authenticatedRequest(path, opts = {}) {
-  const token = getToken();
-  return request(path, {
+//export function authenticatedRequest(path, opts = {}) {
+//  const token = getToken();
+//  return request(path, {
+//    ...opts,
+//    headers: { Authorization: token ? `Bearer ${token}` : undefined, ...(opts.headers || {}) },
+//  });
+//}
+
+
+// For any authed call
+export async function authenticatedRequest(path, opts = {}) {
+  let token = getToken();
+
+  // Attempt the request
+  let response = await request(path, {
     ...opts,
     headers: { Authorization: token ? `Bearer ${token}` : undefined, ...(opts.headers || {}) },
   });
+
+  // If token expired, try to refresh
+  if (response.status === 401) {
+    const refreshResponse = await fetch('/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (refreshResponse.ok) {
+      const data = await refreshResponse.json();
+      token = data.JWT;
+      setToken(token); // save the new access token
+
+      // Retry original request with new token
+      response = await request(path, {
+        ...opts,
+        headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) },
+      });
+    } else {
+      // Refresh failed, force logout
+      window.location.href = '/login';
+      return;
+    }
+  }
+
+  return response;
 }
+
 
 
 export function getHomePage() {

@@ -1,6 +1,6 @@
 from flask import request, jsonify, g
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, \
-    set_access_cookies
+    set_access_cookies, create_refresh_token
 from handlers.exceptions.exceptions import PasswordFormatError, UserAlreadyExistsError
 from handlers.enums.roles import Role
 from handlers.role_handler import RoleValidationHandler
@@ -12,8 +12,6 @@ def create_user_endpoint():
     """ Endpoint to create a new user """
 
     data = request.get_json()
-
-    print(data)
 
     # Ensure the required fields exist
     if (not data or 'firstName' not in data or 'lastName' not in data or
@@ -36,6 +34,7 @@ def create_user_endpoint():
         if g.account_handler.create_user(first_name, last_name, username, password, role, code):
             user_id = g.account_handler.find_user_by_name(username)['_id']
             access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
+            refresh_token = create_refresh_token(identity=username)
             set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
 
             # Decode token to read expiration
@@ -78,6 +77,7 @@ def login_endpoint():
 
         # Create JWT token
         access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
+        refresh_token = create_refresh_token(identity=username)
         set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
 
         # Decode token to read expiration

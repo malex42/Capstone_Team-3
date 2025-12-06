@@ -336,7 +336,9 @@ export default function PostShift() {
         {/* LEFT NAVIGATION */}
         <aside style={styles.leftNav}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ ...styles.navItem }}>
+            <div style={{ ...styles.navItem, cursor: "pointer" }}
+            onClick={() => navigate("/log-activity")}
+            >
               <img style={styles.navIcon} src="/img/logActivityIcon.png" alt="Log" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666' }}>Log Activity</div>
