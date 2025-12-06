@@ -15,3 +15,4 @@ venv/
 
 #ssl files
 /server/ssl
+node_modules

@@ -4,6 +4,7 @@ import SignupPage from './pages/signup.jsx'
 import CreateBusiness from './pages/createBusiness.jsx'
 import EmployeeHome from './pages/employeeHome.jsx'
 import ManagerHome from './pages/managerHome.jsx'
+import Monitoring from './pages/monitoring.jsx'
 import ManagerScheduleEditor from './pages/schedTools.jsx'
 import PostShift from './pages/postShift.jsx'
 import TakeShift from './pages/takeShift.jsx'   // <-- add this import
@@ -40,7 +41,7 @@ function App() {
         {/* Take Shift page */}
         <Route path="/take-shift" element={<TakeShift />} />
 
-        {/*Monitoring page */}
+        {/* Monitoring page */}
         <Route path="/monitoring" element={<Monitoring />} />
 
       </Routes>

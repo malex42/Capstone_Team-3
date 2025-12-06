@@ -40,6 +40,14 @@ export default function ManagerScheduleEditor() {
 
   const HEADER_HEIGHT = 84;
   const LEFT_NAV_WIDTH = 260;
+    const navItems = [
+      { icon: "logActivityIcon.png", label: "Log Activity", path: "/manager-home" },
+      { icon: "calenderIcon.png", label: "Schedules", path: "/schedules" },
+      { icon: "monitorActivityIcon.png", label: "Monitor", path: "/monitoring" },
+      { icon: "alertIcon.png", label: "Alerts" },
+      { icon: "accountIcon.png", label: "Account" },
+      { icon: "myPayIcon.png", label: "Payroll" },
+    ];
   const HORIZONTAL_GAP = 24;
   const VERTICAL_PADDING = 32;
   const PANEL_WIDTH = 400;
@@ -213,15 +221,12 @@ export default function ManagerScheduleEditor() {
         {/* Left Sidebar */}
         <aside style={styles.leftNav}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {[
-              { icon: "logActivityIcon.png", label: "Log Activity" },
-              { icon: "calenderIcon.png", label: "Schedules" },
-              { icon: "monitorActivityIcon.png", label: "Monitor" },
-              { icon: "alertIcon.png", label: "Alerts" },
-              { icon: "accountIcon.png", label: "Account" },
-              { icon: "myPayIcon.png", label: "Payroll" },
-            ].map((item) => (
-              <div key={item.label} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 6px', borderRadius: 8, cursor: 'pointer' }}>
+            {navItems.map((item) => (
+              <div
+                key={item.label}
+                style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 6px', borderRadius: 8, cursor: item.path ? 'pointer' : 'default' }}
+                onClick={() => item.path && navigate(item.path)}
+              >
                 <img style={{ width: 36, height: 36, objectFit: 'contain' }} src={`/img/${item.icon}`} alt={item.label} />
                 <div><div style={{ fontWeight: 700, color: '#666' }}>{item.label}</div></div>
               </div>
