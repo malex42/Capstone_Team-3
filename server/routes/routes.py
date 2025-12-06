@@ -2,7 +2,7 @@ from datetime import datetime
 
 import jwt
 from flask import g, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, set_access_cookies
 
 from handlers.account_handler import AccountHandler
 from handlers.activity_handler import ActivityHandler
@@ -30,25 +30,14 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
         g.schedule_handler = schedule_handler
         g.activity_handler = activity_handler
 
-        # @jwt_required(refresh=False)
-        # def refresh_token_endpoint():
-        #     username = get_jwt_identity()
-        #     user = g.account_handler.find_user_by_name(username)
-        #     role = user['role']
-        #     user_id = user['_id']
-        #     code = user.get('business_code', None)
-        #
-        #     new_access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code,
-        #                                                                                  "user_id": str(user_id)})
-        #
-        #     decoded = jwt.decode(new_access_token, options={"verify_signature": False})
-        #     exp_time = datetime.fromtimestamp(decoded.get('exp'))
-        #
-        #     return jsonify({
-        #         "access_token": new_access_token,
-        #         "message": "Access token refreshed",
-        #         "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S")
-        #     }), 200
+    @app.route("/refresh", methods=["POST"])
+    @jwt_required(refresh=True)
+    def refresh():
+        identity = get_jwt_identity()
+        new_access_token = create_access_token(identity=identity)
+        resp = jsonify({"msg": "token refreshed", "JWT": new_access_token})
+        set_access_cookies(resp, new_access_token)
+        return resp, 200
 
     app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
     app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
@@ -70,7 +59,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/employee/take_shift', view_func=take_shift_endpoint, methods=['POST'])
 
     app.add_url_rule('/api/employee/next_shift', view_func=upcoming_shift_endpoint, methods=['GET'])
-    app.add_url_rule('/api/employee/log_activity', view_func=log_activity_endpoint, methods=['POSt'])
+    app.add_url_rule('/api/employee/log_activity', view_func=log_activity_endpoint, methods=['POST'])
 
 
 

@@ -214,7 +214,6 @@ export default function ManagerScheduleEditor() {
         <aside style={styles.leftNav}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
-              { icon: "logActivityIcon.png", label: "Log Activity" },
               { icon: "calenderIcon.png", label: "Schedules" },
               { icon: "monitorActivityIcon.png", label: "Monitor" },
               { icon: "alertIcon.png", label: "Alerts" },
