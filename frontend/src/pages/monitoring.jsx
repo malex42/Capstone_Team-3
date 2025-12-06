@@ -196,19 +196,6 @@ export default function Monitoring() {
         {/* Sidebar */}
         <aside style={styles.leftNav}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div
-              style={styles.navItem}
-              onClick={() => navigate('/manager-home')}
-            >
-              <img
-                style={styles.navIcon}
-                src="/img/logActivityIcon.png"
-                alt="Log Activity"
-              />
-              <div>
-                <div style={{ fontWeight: 700, color: '#666' }}>Log Activity</div>
-              </div>
-            </div>
 
             <div
               style={styles.navItem}
