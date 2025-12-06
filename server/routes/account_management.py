@@ -13,8 +13,6 @@ def create_user_endpoint():
 
     data = request.get_json()
 
-    print(data)
-
     # Ensure the required fields exist
     if (not data or 'firstName' not in data or 'lastName' not in data or
             'username' not in data or 'password' not in data or 'role' not in data):

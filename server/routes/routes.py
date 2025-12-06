@@ -5,10 +5,12 @@ from flask import g, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 
 from handlers.account_handler import AccountHandler
+from handlers.activity_handler import ActivityHandler
 from handlers.business_handler import BusinessHandler
 from handlers.schedule_handler import ScheduleHandler
 
 from routes.account_management import create_user_endpoint, login_endpoint
+from routes.activity_management import upcoming_shift_endpoint
 from routes.business_management import create_business_endpoint, link_business_endpoint
 from routes.home_management import populate_home_endpoint
 from routes.schedule_management import new_schedule_endpoint, get_schedules_endpoint, add_shift_endpoint, \
@@ -17,7 +19,7 @@ from routes.schedule_management import new_schedule_endpoint, get_schedules_endp
 from routes.business_management import get_all_employees_endpoint
 
 def setup_routes(app, account_handler: AccountHandler, business_handler: BusinessHandler,
-                 schedule_handler: ScheduleHandler):
+                 schedule_handler: ScheduleHandler, activity_handler: ActivityHandler):
     """ Setup routes and bind to the app """
 
     @app.before_request
@@ -26,6 +28,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
         g.account_handler = account_handler
         g.business_handler = business_handler
         g.schedule_handler = schedule_handler
+        g.activity_handler = activity_handler
 
         # @jwt_required(refresh=False)
         # def refresh_token_endpoint():
@@ -65,6 +68,8 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/employee/shifts', view_func=get_posted_shifts_endpoint, methods=['GET'])
     app.add_url_rule('/api/employee/post_shift', view_func=post_shift_endpoint, methods=['POST'])
     app.add_url_rule('/api/employee/take_shift', view_func=take_shift_endpoint, methods=['POST'])
+
+    app.add_url_rule('/api/employee/next_shift', view_func=upcoming_shift_endpoint, methods=['GET'])
 
 
 

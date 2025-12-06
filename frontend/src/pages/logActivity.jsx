@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '@/styles/homePage.css'
 import '@/styles/auth.css'
-import { getHomePage, getBusinessCode } from '@/lib/api'
+import { getHomePage, getBusinessCode, authenticatedRequest } from '@/lib/api'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''  // e.g. 'http://localhost:3333'
 const HEADER_HEIGHT = 84
@@ -24,29 +24,46 @@ export default function ManagerHome() {
   const [actionLoading, setActionLoading] = useState(false)
   const [actionMessage, setActionMessage] = useState('')
 
-  // utility to get token - adjust key if your app stores token under a different name
-  const getAuthToken = () => window.localStorage.getItem('token') || window.localStorage.getItem('authToken') || ''
 
-  const fetchActivity = useCallback(async () => {
-    setActionMessage('')
+//   const fetchActivity = useCallback(async () => {
+//     setActionMessage('')
+//     try {
+//       const token = getAuthToken()
+//       const res = await fetch(`${API_BASE}/api/employee/next_shift`, {
+//         method: 'GET',
+//         headers: {
+//           'Content-Type': 'application/json',
+//           Authorization: token ? `Bearer ${token}` : '',
+//         },
+//       })
+//       if (!res.ok) throw new Error(`HTTP ${res.status}`)
+//       const data = await res.json()
+//       setUpcomingShift(data.upcoming_shift ?? null)
+//       setClockedIn(Boolean(data.clocked_in))
+//     } catch (err) {
+//       console.error('Failed to load activity:', err)
+//       setActionMessage('Could not load activity.')
+//     }
+//   }, [])
+
+useEffect(() => {
+  const fetchActivity = async () => {
+    setActionMessage('');
     try {
-      const token = getAuthToken()
-      const res = await fetch(`${API_BASE}/api/activity`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : '',
-        },
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
-      setUpcomingShift(data.upcoming_shift ?? null)
-      setClockedIn(Boolean(data.clocked_in))
+      const data = await authenticatedRequest("/api/employee/next_shift");
+
+      setUpcomingShift(data.shift ?? null);
+      setClockedIn(Boolean(data.clocked_in));
     } catch (err) {
-      console.error('Failed to load activity:', err)
-      setActionMessage('Could not load activity.')
+      console.error("Failed to load activity:", err);
+      setActionMessage("Could not load activity.");
     }
-  }, [])
+  };
+
+  fetchActivity();
+}, []);
+
+
 
   const handleLogActivity = useCallback(async (clockIn) => {
     if (!upcomingShift?._id) {
@@ -87,47 +104,48 @@ export default function ManagerHome() {
     }
   }, [])
 
-  useEffect(() => {
-    let mounted = true
+ useEffect(() => {
+  let mounted = true
 
-    async function fetchHome() {
-      try {
-        const data = await getHomePage()
-        if (!mounted) return
-        setBusinessName(data.business_name || '')
+  async function fetchHome() {
+    try {
+      const data = await getHomePage()
+      if (!mounted) return
+      setBusinessName(data.business_name || '')
 
-        const mapped = (data.shifts || []).map((s, idx) => {
-          let start = s.start ? new Date(s.start) : new Date()
-          let end = s.end ? new Date(s.end) : new Date(start.getTime() + 60 * 60 * 1000)
-          if (isNaN(start)) start = new Date()
-          if (isNaN(end)) end = new Date(start.getTime() + 60 * 60 * 1000)
+      const mapped = (data.shifts || []).map((s, idx) => {
+        let start = s.start ? new Date(s.start) : new Date()
+        let end = s.end ? new Date(s.end) : new Date(start.getTime() + 60 * 60 * 1000)
+        if (isNaN(start)) start = new Date()
+        if (isNaN(end)) end = new Date(start.getTime() + 60 * 60 * 1000)
 
-          const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-          const formattedEnd = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+        const formattedStart = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+        const formattedEnd = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 
-          return {
-            id: s._id || idx,
-            title: `${String(s.employee_name ?? '').slice(0, 10).toUpperCase()}: ${formattedStart} - ${formattedEnd}`,
-            start,
-            end,
-            allDay: false,
-          }
-        })
+        return {
+          id: s._id || idx,
+          title: `${String(s.employee_name ?? '').slice(0, 10).toUpperCase()}: ${formattedStart} - ${formattedEnd}`,
+          start,
+          end,
+          allDay: false,
+        }
+      })
 
-        setEvents(mapped)
-      } catch (err) {
-        console.error('Failed to fetch home page:', err)
-      } finally {
-        if (mounted) setLoading(false)
-      }
+      setEvents(mapped)
+    } catch (err) {
+      console.error('Failed to fetch home page:', err)
+    } finally {
+      if (mounted) setLoading(false)
     }
+  }
 
-    fetchHome()
-    fetchActivity() // load activity endpoint as well
-    return () => {
-      mounted = false
-    }
-  }, [fetchActivity])
+  fetchHome()
+
+  return () => {
+    mounted = false
+  }
+}, [])
+
 
   const styles = {
     root: {
