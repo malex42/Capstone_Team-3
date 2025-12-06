@@ -22,13 +22,18 @@ class ActivityHandler:
         self.activity = db["Activity"]
 
 
-    def _insert_activity(self, shift_id: str, employee_id: str, employee_name: str, clock_in: bool):
+    def _insert_activity(self, shift: dict, employee_id: str, employee_name: str, clock_in: bool, business_code: str):
+
+
         activity = {
-            "shift_id": shift_id,
+            "shift_id": shift["_id"],
+            "shift_start": shift["start"],
+            "shift_end": shift["end"],
+            "business_code": business_code,
             "employee_id": employee_id,
             "employee_name": employee_name,
             "clock_in": clock_in,
-            "timestamp": datetime.now()
+            "timestamp": datetime.now().isoformat() + 'Z'
         }
 
         self.activity.insert_one(activity)
@@ -67,8 +72,8 @@ class ActivityHandler:
         )
 
         if result is not None:
-            self._insert_activity(shift_id=shift_id, employee_id=shift["employee_id"],
-                                  employee_name=shift["employee_name"], clock_in=True)
+            self._insert_activity(shift=shift, employee_id=shift["employee_id"],
+                                  employee_name=shift["employee_name"], clock_in=True, business_code=schedule["business_code"])
 
             return True
 
@@ -106,8 +111,8 @@ class ActivityHandler:
         )
 
         if result is not None:
-            self._insert_activity(shift_id=shift_id, employee_id=shift["employee_id"],
-                                  employee_name=shift["employee_name"], clock_in=False)
+            self._insert_activity(shift=shift, employee_id=shift["employee_id"],
+                                  employee_name=shift["employee_name"], clock_in=False, business_code=schedule["business_code"])
 
             return True
 
@@ -164,3 +169,9 @@ class ActivityHandler:
             return self._clock_in(schedule, shift_id)
         else:
             return self._clock_out(schedule, shift_id)
+
+
+    def get_employee_activities(self, business_code: str):
+        activities = self.activity.find({"business_code": business_code})
+
+        return list(activities)

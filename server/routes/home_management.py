@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from flask import request, jsonify, g
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, \
-    set_access_cookies, verify_jwt_in_request
+from flask import jsonify, g
+from flask_jwt_extended import get_jwt, verify_jwt_in_request
 
 from handlers.enums.roles import Role
 from handlers.validation_handler import is_authorized

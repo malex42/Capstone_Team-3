@@ -1,22 +1,6 @@
 import { jwtDecode } from 'jwt-decode'
 
 
-//export async function request(path, { method = 'GET', body, headers } = {}) {
-//  const data = await fetch(path, {
-//    method,
-//    headers: { 'Content-Type': 'application/json', ...(headers || {}) },
-//    body: body ? JSON.stringify(body) : undefined,
-//    credentials: 'include',
-//  });
-//
-//  if (!data.ok) {
-//    const msg = data?.message || `HTTP ${data.status}`;
-//    throw new Error(msg);
-//  }
-// console.log(data)
-//  return data;
-//}
-
 export async function request(path, { method = 'GET', body, headers } = {}) {
   const res = await fetch(path, {
     method,
@@ -48,6 +32,14 @@ export function saveToken(jwt) {
 
 export function getToken() {
   try { return localStorage.getItem('JWT'); } catch { return null; }
+}
+
+export function saveRefreshToken(jwt) {
+  try { localStorage.setItem('refreshJWT', jwt); } catch {}
+}
+
+export function getRefreshToken() {
+  try { return localStorage.getItem('refreshJWT'); } catch { return null; }
 }
 
 export function addCodeToToken(code) {
@@ -82,7 +74,6 @@ export function getEmployeeID() {
 }
 
 
-// ---- API calls aligned to your Flask routes ----
 export function createUser({ firstName, lastName, username, password, role, code }) {
   return request('/api/auth/register', {
     method: 'POST',
@@ -99,47 +90,34 @@ export function loginUser({ username, password }) {
 
 
 // For any authed call
-//export function authenticatedRequest(path, opts = {}) {
-//  const token = getToken();
-//  return request(path, {
-//    ...opts,
-//    headers: { Authorization: token ? `Bearer ${token}` : undefined, ...(opts.headers || {}) },
-//  });
-//}
-
-
-// For any authed call
 export async function authenticatedRequest(path, opts = {}) {
-  let token = getToken();
+  let token = getToken(); // access token
+  let refreshToken = getRefreshToken(); // refresh token
 
-  // Attempt the request
   let response = await request(path, {
     ...opts,
     headers: { Authorization: token ? `Bearer ${token}` : undefined, ...(opts.headers || {}) },
   });
 
-  // If token expired, try to refresh
-  if (response.status === 401) {
+  if (response.status === 401 && refreshToken) {
     const refreshResponse = await fetch('/refresh', {
       method: 'POST',
-      credentials: 'include',
+      headers: { Authorization: `Bearer ${refreshToken}` },
     });
+
 
     if (refreshResponse.ok) {
       const data = await refreshResponse.json();
       token = data.JWT;
-      setToken(token); // save the new access token
+      setToken(token);
 
-      // Retry original request with new token
       response = await request(path, {
         ...opts,
         headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) },
       });
     } else {
-      // Refresh failed, force logout
-      window.location.href = '/login';
-      return;
-    }
+      window.location.href = '/';
+      return { redirected: true }; }
   }
 
   return response;

@@ -10,7 +10,7 @@ from handlers.business_handler import BusinessHandler
 from handlers.schedule_handler import ScheduleHandler
 
 from routes.account_management import create_user_endpoint, login_endpoint
-from routes.activity_management import upcoming_shift_endpoint, log_activity_endpoint
+from routes.activity_management import upcoming_shift_endpoint, log_activity_endpoint, employee_activities_endpoint
 from routes.business_management import create_business_endpoint, link_business_endpoint
 from routes.home_management import populate_home_endpoint
 from routes.schedule_management import new_schedule_endpoint, get_schedules_endpoint, add_shift_endpoint, \
@@ -35,9 +35,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     def refresh():
         identity = get_jwt_identity()
         new_access_token = create_access_token(identity=identity)
-        resp = jsonify({"msg": "token refreshed", "JWT": new_access_token})
-        set_access_cookies(resp, new_access_token)
-        return resp, 200
+        return jsonify({"msg": "token refreshed", "JWT": new_access_token}), 200
 
     app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
     app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
@@ -60,6 +58,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
 
     app.add_url_rule('/api/employee/next_shift', view_func=upcoming_shift_endpoint, methods=['GET'])
     app.add_url_rule('/api/employee/log_activity', view_func=log_activity_endpoint, methods=['POST'])
+    app.add_url_rule('/api/manager/activity', view_func=employee_activities_endpoint, methods=['GET'])
 
 
 

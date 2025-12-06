@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { createUser, saveToken } from '@/lib/api'
+import { createUser, saveToken, saveRefreshToken } from '@/lib/api'
 import '@/styles/auth.css'
 
 export default function Signup() {
@@ -25,6 +25,7 @@ export default function Signup() {
       if (useCode && code.trim()) body.code = code.trim()
       const res = await createUser(body)
       if (res?.JWT) saveToken(res.JWT)
+      if (res?.refresh_JWT) saveRefreshToken(res.refresh_JWT)
       navigate('/')
     } catch (err) {
       setError(err.message || 'Signup failed')

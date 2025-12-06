@@ -85,6 +85,10 @@ useEffect(() => {
   async function fetchHome() {
     try {
       const data = await getHomePage();
+      if (data?.redirected) {
+        navigate('/');
+        return;
+      }
 
       if (!mounted) return;
 

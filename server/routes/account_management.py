@@ -35,7 +35,6 @@ def create_user_endpoint():
             user_id = g.account_handler.find_user_by_name(username)['_id']
             access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
             refresh_token = create_refresh_token(identity=username)
-            set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
 
             # Decode token to read expiration
             decoded = pyjwt.decode(access_token, options={"verify_signature": False})
@@ -44,6 +43,7 @@ def create_user_endpoint():
 
             return jsonify({
                 "JWT": access_token,
+                "refresh_JWT": refresh_token,
                 "message": "User created",
                 "username": username,
                 "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
@@ -78,7 +78,6 @@ def login_endpoint():
         # Create JWT token
         access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
         refresh_token = create_refresh_token(identity=username)
-        set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
 
         # Decode token to read expiration
         decoded = pyjwt.decode(access_token, options={"verify_signature": False})
@@ -86,6 +85,7 @@ def login_endpoint():
 
         return jsonify({
             "JWT": access_token,
+            "refresh_JWT": refresh_token,
             "message": "Success",
             "username": username,
             "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
