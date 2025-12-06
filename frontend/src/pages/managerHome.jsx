@@ -280,7 +280,9 @@ useEffect(() => {
               </div>
             </div>
 
-            <div style={{ ...styles.navItem }}>
+            <div style={{ ...styles.navItem }}
+              onClick={() => navigate("/monitoring")}
+            >
               <img style={styles.navIcon} src="/img/monitorActivityIcon.png" alt="Monitor" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666'  }}>Monitor</div>

@@ -40,6 +40,9 @@ function App() {
         {/* Take Shift page */}
         <Route path="/take-shift" element={<TakeShift />} />
 
+        {/*Monitoring page */}
+        <Route path="/monitoring" element={<Monitoring />} />
+
       </Routes>
     </Router>
   )
