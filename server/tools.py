@@ -1,5 +1,6 @@
 import string
 import random
+from datetime import datetime
 
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
@@ -19,3 +20,6 @@ def jsonify_keys(original: dict | list[dict], keys_to_convert: list[str]) -> dic
         return convert_keys(original)
     else:
         raise TypeError("Input must be a dict or a list of dicts.")
+
+def parse_utc(dt_str: str) -> datetime:
+    return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))

@@ -70,7 +70,6 @@ def add_shift_endpoint():
     """ Endpoint to add a shift to a schedule """
     # data = request.get_json()
     data = request.get_json(silent=False, force=True)
-    print(data)
 
     # JWT check
     verify_jwt_in_request()
@@ -81,7 +80,7 @@ def add_shift_endpoint():
     # Role enforcement check
     auth_check = is_authorized(claims, [Role.MANAGER])
     if auth_check:
-        return
+        return auth_check
 
     if not data or 'schedule_id' not in data or 'shift' not in data:
         return jsonify({"message": "Schedule ID and shift object are required"}), 400

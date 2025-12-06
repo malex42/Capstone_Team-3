@@ -24,36 +24,17 @@ export default function ManagerHome() {
   const [actionLoading, setActionLoading] = useState(false)
   const [actionMessage, setActionMessage] = useState('')
 
-
-//   const fetchActivity = useCallback(async () => {
-//     setActionMessage('')
-//     try {
-//       const token = getAuthToken()
-//       const res = await fetch(`${API_BASE}/api/employee/next_shift`, {
-//         method: 'GET',
-//         headers: {
-//           'Content-Type': 'application/json',
-//           Authorization: token ? `Bearer ${token}` : '',
-//         },
-//       })
-//       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-//       const data = await res.json()
-//       setUpcomingShift(data.upcoming_shift ?? null)
-//       setClockedIn(Boolean(data.clocked_in))
-//     } catch (err) {
-//       console.error('Failed to load activity:', err)
-//       setActionMessage('Could not load activity.')
-//     }
-//   }, [])
-
 useEffect(() => {
   const fetchActivity = async () => {
     setActionMessage('');
     try {
       const data = await authenticatedRequest("/api/employee/next_shift");
 
+      console.log(data);
+
       setUpcomingShift(data.shift ?? null);
       setClockedIn(Boolean(data.clocked_in));
+      console.log(clockedIn);
     } catch (err) {
       console.error("Failed to load activity:", err);
       setActionMessage("Could not load activity.");
@@ -64,35 +45,28 @@ useEffect(() => {
 }, []);
 
 
+const handleLogActivity = async (clockIn) => {
 
-  const handleLogActivity = useCallback(async (clockIn) => {
-    if (!upcomingShift?._id) {
-      setActionMessage('No shift selected to log.')
-      return
-    }
-    setActionLoading(true)
-    setActionMessage('')
+    if (!upcomingShift) return;
+
+    setActionLoading(true);
+    setActionMessage('');
     try {
-      const token = getAuthToken()
-      const res = await fetch(`${API_BASE}/api/log_activity`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : '',
-        },
-        body: JSON.stringify({ shift_id: upcomingShift._id, clock_in: clockIn }),
-      })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.message || `HTTP ${res.status}`)
-      setClockedIn(clockIn)
-      setActionMessage(json.message || (clockIn ? 'Clocked in' : 'Clocked out'))
+      const data = await authenticatedRequest("/api/employee/log_activity", {
+          method: "POST",
+          body: { shift_id: upcomingShift._id, clock_in: clockIn },
+          });
+
+      setClockedIn(Boolean(clockIn));
+      setActionMessage(clockIn ? 'Clocked in' : 'Clocked out');
+
     } catch (err) {
-      console.error('Log activity failed:', err)
-      setActionMessage(err.message || 'Action failed')
+      console.error("Failed to load activity:", err);
+      window.alert(err.message || "Could not load activity.");
     } finally {
-      setActionLoading(false)
+    setActionLoading(false);
     }
-  }, [upcomingShift])
+  };
 
   // lock scrolling while this view is mounted
   useEffect(() => {
@@ -305,48 +279,99 @@ useEffect(() => {
               <div style={{ fontSize: 24, fontWeight: 600, color: '#222' }}>Log Activity</div>
             </header>
 
-            {/* Activity section using the API */}
-            <section style={{ padding: 12, color: 'black' }}>
-              <h5>Upcoming shift</h5>
 
-              {!upcomingShift ? (
-                <div>No upcoming shift</div>
-              ) : (
-                <div style={{ marginBottom: 12 }}>
-                  <div><strong>{upcomingShift.employee_name}</strong></div>
-                  <div>
-                    {new Date(upcomingShift.start).toLocaleString()} — {new Date(upcomingShift.end).toLocaleString()}
+           <section style={{
+                padding: 12,
+                color: 'black',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '300px',
+                 }}>
+
+                  <div
+                    style={{
+                      borderRadius: 12,
+                      padding: 20,
+                      background: clockedIn ? 'rgba(232,245,233,0.95)' : 'rgba(245,247,250,0.95)',
+                      border: clockedIn ? '1px solid #c8e6c9' : '1px solid #e0e0e0',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                      maxWidth: 520,
+                      width: '100%'
+                    }}
+                  >
+                    {/* Header */}
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 13, color: '#666', letterSpacing: 0.5 }}>
+                        {clockedIn ? 'CURRENT SHIFT' : 'UPCOMING SHIFT'}
+                      </div>
+                      <div style={{ fontSize: 20, fontWeight: 600 }}>
+                        {upcomingShift ? upcomingShift.employee_name : 'No shift scheduled'}
+                      </div>
+                    </div>
+
+                    {!upcomingShift ? (
+                      <div style={{ color: '#777' }}>You have no upcoming shifts.</div>
+                    ) : (
+                      <>
+                        {/* Date + Time */}
+                        <div style={{ marginBottom: 10 }}>
+                          <div style={{ fontSize: 16, fontWeight: 600 }}>
+                            {new Date(upcomingShift.start).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </div>
+
+                          <div style={{ fontSize: 15, color: '#555' }}>
+                            {new Date(upcomingShift.start).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                            })}
+                            {' '}–{' '}
+                            {new Date(upcomingShift.end).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                            })}
+                          </div>
+
+                          <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>
+                            {Math.round(
+                              (new Date(upcomingShift.end) - new Date(upcomingShift.start)) / 60000
+                            )} minutes
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ marginTop: 12 }}>
+                          <button
+                            className="btn btn-primary me-2"
+                            disabled={actionLoading || clockedIn}
+                            onClick={() => handleLogActivity(true)}
+                          >
+                            {actionLoading && !clockedIn ? 'Processing…' : 'Clock In'}
+                          </button>
+
+                          <button
+                            className="btn btn-outline-secondary"
+                            disabled={actionLoading || !clockedIn}
+                            onClick={() => handleLogActivity(false)}
+                          >
+                            {actionLoading && clockedIn ? 'Processing…' : 'Clock Out'}
+                          </button>
+                        </div>
+
+                        {actionMessage && (
+                          <div style={{ marginTop: 10, fontSize: 14 }}>
+                            {actionMessage}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
-                </div>
-              )}
 
-              <div style={{ marginTop: 8 }}>
-                <button
-                  className="btn btn-primary me-2"
-                  disabled={actionLoading || !upcomingShift}
-                  onClick={() => handleLogActivity(true)}
-                >
-                  {actionLoading && !clockedIn ? 'Processing...' : 'Clock In'}
-                </button>
-
-                <button
-                  className="btn btn-outline-secondary"
-                  disabled={actionLoading || !upcomingShift}
-                  onClick={() => handleLogActivity(false)}
-                >
-                  {actionLoading && clockedIn ? 'Processing...' : 'Clock Out'}
-                </button>
-              </div>
-
-              {typeof actionMessage === 'string' && actionMessage && (
-                <div style={{ marginTop: 12, color: '#333' }}>{actionMessage}</div>
-              )}
-            </section>
-
-            <div className="container" style={{ color: 'black' }}>
-              <header>No alerts</header>
-              
-            </div>
+                </section>
 
           </div>
         </main>
