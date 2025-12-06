@@ -249,7 +249,7 @@ export default function Monitoring() {
       flexDirection: 'column',
       gap: 16,
     },
-    contentTitle: { fontSize: 24, fontWeight: 700, marginBottom: 4 },
+    contentTitle: { fontSize: 24, fontWeight: 700, marginBottom: 4, color: '#222' },
     contentSubtitle: { fontSize: 14, color: '#444' },
     activityList: {
       marginTop: 8,
