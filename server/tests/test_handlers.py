@@ -19,6 +19,7 @@ from handlers.account_handler import AccountHandler
 from handlers.db_handler import DatabaseHandler
 from handlers.exceptions.exceptions import UserAlreadyExistsError, PasswordFormatError
 
+
 # account_handler.py
 def test_account_handler_initialization():
     # Mock the database
@@ -42,50 +43,55 @@ def test_account_handler_initialization():
     assert handler is not None
     assert handler.pw_handler == pw_handler
 
+
 def test_insert_user_employee():
     db, collection = make_db_and_collection(has_business_collection=True)
     db_handler = MagicMock(database=db)
     pw_handler = MagicMock()
-    
+
     handler = AccountHandler(db_handler, pw_handler)
-    
-    # Test employee insertion
-    handler._insert_user("test_user", "hashed_pass", "employee", None)
-    
+
+    # Test employee insertion - Updated signature: name, input_username, hashed_password, role, code
+    handler._insert_user("Test User", "test_user", "hashed_pass", "employee", None)
+
     collection.insert_one.assert_called_once()
     inserted = collection.insert_one.call_args[0][0]
+    assert inserted["name"] == "Test User"
     assert inserted["username"] == "test_user"
     assert inserted["password"] == "hashed_pass"
     assert inserted["role"] == "employee"
+
 
 def test_insert_user_manager():
     db, collection = make_db_and_collection(has_business_collection=True)
     db_handler = MagicMock(database=db)
     pw_handler = MagicMock()
-    
+
     handler = AccountHandler(db_handler, pw_handler)
-    
-    # Test manager insertion with business code
-    handler._insert_user("manager1", "hashed_pass", "manager", "BIZ123")
-    
+
+    # Test manager insertion with business code - Updated signature
+    handler._insert_user("Manager One", "manager1", "hashed_pass", "manager", "BIZ123")
+
     collection.insert_one.assert_called_once()
     inserted = collection.insert_one.call_args[0][0]
+    assert inserted["name"] == "Manager One"
     assert inserted["username"] == "manager1"
     assert inserted["password"] == "hashed_pass"
     assert inserted["role"] == "manager"
     assert inserted["business_code"] == "BIZ123"
 
+
 def test_insert_user_duplicate_error():
     db, collection = make_db_and_collection(has_business_collection=True)
     db_handler = MagicMock(database=db)
     pw_handler = MagicMock()
-    
+
     collection.insert_one.side_effect = pymongo.errors.DuplicateKeyError("dup")
-    
+
     handler = AccountHandler(db_handler, pw_handler)
-    
+
     with pytest.raises(pymongo.errors.DuplicateKeyError):
-        handler._insert_user("existing", "hashed_pass", "employee", None)
+        handler._insert_user("Existing User", "existing", "hashed_pass", "employee", None)
 
 
 def test_create_user_success(monkeypatch):
@@ -101,12 +107,14 @@ def test_create_user_success(monkeypatch):
     monkeypatch.setattr("handlers.validation_handler.ValidationHandler.validate_user_input", lambda x: True)
 
     handler = AccountHandler(db_handler, pw_handler)
-    result = handler.create_user("test_user", "ValidPass1", "employee", None)
+    # Updated to match actual signature: first_name, last_name, input_username, input_password, role, code
+    result = handler.create_user("Test", "User", "test_user", "ValidPass1", "employee", None)
 
     assert result is True
     collection.insert_one.assert_called_once()
     inserted = collection.insert_one.call_args[0][0]
-    assert inserted["username"] == "testuser"
+    assert inserted["name"] == "Test User"
+    assert inserted["username"] == "test_user"
     assert inserted["password"] == "hashed_password"
     assert inserted["role"] == "employee"
     assert "created_at" in inserted
@@ -124,7 +132,8 @@ def test_create_user_duplicate(monkeypatch):
 
     handler = AccountHandler(db_handler, pw_handler)
     with pytest.raises(UserAlreadyExistsError):
-        handler.create_user("existing_user", "ValidPass1", "employee", None)
+        # Updated to match actual signature
+        handler.create_user("Existing", "User", "existing_user", "ValidPass1", "employee", None)
 
 
 def test_validate_login_success():
@@ -169,10 +178,22 @@ def test_validate_login_user_not_found():
 # business_handler.py
 def make_db_and_collection(has_business_collection=True):
     db = MagicMock()
-    db.list_collection_names.return_value = ["Businesses"] if has_business_collection else []
-    collection = MagicMock()
+    if has_business_collection:
+        db.list_collection_names.return_value = ["Businesses", "Users"]
+    else:
+        db.list_collection_names.return_value = ["Users"]
 
-    db.__getitem__.return_value = collection
+    collection = MagicMock()
+    users_collection = MagicMock()
+
+    # Return different collections based on the key
+    def getitem_side_effect(key):
+        if key == "Users":
+            return users_collection
+        else:
+            return collection
+
+    db.__getitem__.side_effect = getitem_side_effect
     db.create_collection = MagicMock()
     return db, collection
 
@@ -196,9 +217,10 @@ def test_create_business_success(monkeypatch):
     monkeypatch.setattr("handlers.business_handler.id_generator", lambda: "FIXEDCODE")
 
     collection.insert_one = MagicMock()
+    collection.find_one = MagicMock(return_value={"_id": ObjectId(), "code": "FIXEDCODE"})
 
     handler = BusinessHandler(db_handler)
-    user_id = ObjectId()
+    user_id = str(ObjectId())
     code = handler.create_business("My Biz", {"mon": "9-5"}, user_id)
 
     assert code == "FIXEDCODE"
@@ -238,7 +260,7 @@ def test_create_business_validation_fails(monkeypatch):
     collection.insert_one.assert_not_called()
 
 
-# pasword_handler.py
+# password_handler.py
 def test_validate_password():
     pw_handler = PasswordHandler()
 

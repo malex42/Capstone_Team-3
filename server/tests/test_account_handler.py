@@ -1,4 +1,10 @@
 """Integration Tests for AccountHandler. Test user creation, login validation, and database operations"""
+import sys
+import os
+
+# Add the parent folder to sys.path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 import pytest
 import pymongo
 from mongomock import MongoClient
