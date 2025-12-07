@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ConnectivityProvider } from '@/contexts/connectivityContext.jsx';
+import { checkBackend } from '@/contexts/checkBackend.js';
+import React, { useEffect } from 'react';
 
 import Login from './pages/login.jsx'
 import SignupPage from './pages/signup.jsx'
@@ -15,6 +17,21 @@ import LogActivity from './pages/logActivity.jsx'
 import './App.css'
 
 function App() {
+
+     useEffect(() => {
+
+        // Check on load
+        checkBackend();
+
+        // Check every 5 seconds
+        const interval = setInterval(() => {
+          checkBackend();
+        }, 5000);
+
+        return () => clearInterval(interval);
+      }, []);
+
+
   return (
 
   <ConnectivityProvider>

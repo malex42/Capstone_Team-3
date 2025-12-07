@@ -30,9 +30,6 @@ export default function Login() {
     const payload = { username, password }
     const res = await loginUser(payload)
 
-    console.log('Login response:', res); // <-- log the full response
-
-
     if (res?.JWT) {
       saveToken(res.JWT)
 
@@ -45,7 +42,6 @@ export default function Login() {
       if (userRole === 'MANAGER' || userRole == 'manager'){
           if (businessCode != null && businessCode != ''){
               window.location.href = '/manager-home'
-              console.log(businessCode)
 
               }
           else {

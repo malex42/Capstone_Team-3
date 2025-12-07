@@ -119,10 +119,6 @@ useEffect(() => {
       }
       if (data?.offline) return;
 
-      if (!data?.shifts || !Array.isArray(data.shifts)) {
-        console.warn('No shifts returned, keeping last state.');
-        return;
-      }
       if (!mounted) return;
 
       const mapped = (data.shifts || []).map((s, idx) => {

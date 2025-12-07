@@ -33,7 +33,7 @@ def populate_home_endpoint():
         if business:
             # Get the schedule for the business and current month
             schedule = g.schedule_handler.get_schedule_for_month(business_code=code, month=current_month)
-            schedule_id = schedule['_id']
+            schedule_id = None if not schedule else schedule['_id']
 
             return jsonify({
                 "message": "success",

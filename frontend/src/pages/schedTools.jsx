@@ -39,7 +39,10 @@ export default function ManagerScheduleEditor() {
   const [schedules, setSchedules] = useState([]);
   const { isOffline } = useConnectivity();
 
-  const canEditShifts = Boolean(scheduleId);
+  const scheduleExistsForView = schedules.some(
+    s => s.year === viewYear && s.month === viewMonth
+     );
+  const canEditShifts = Boolean(scheduleId) && scheduleExistsForView;
   const canEdit = canEditShifts && !isOffline;
 
 
@@ -106,6 +109,14 @@ export default function ManagerScheduleEditor() {
   }
 };
 
+const ensureScheduleExists = async (year, month) => {
+  const exists = schedules.some(s => s.year === year && s.month === month);
+  if (!exists) {
+    await createSchedule(year, month);
+    await refreshSchedule();
+  }
+};
+
   const createSchedule = async (year, month) => {
     await authenticatedRequest("/api/manager/schedules/new", {
       method: "POST",
@@ -147,16 +158,29 @@ export default function ManagerScheduleEditor() {
   };
 
   useEffect(() => {
-    const loadSchedules = async () => {
-      try {
-        const data = await authenticatedRequest("/api/manager/schedules");
-        setSchedules(data.schedules || []);
-      } catch (err) {
-        console.error("Failed to load schedules:", err);
+  const init = async () => {
+    try {
+      // Load existing schedules from API
+      const data = await authenticatedRequest("/api/manager/schedules");
+      setSchedules(data.schedules || []);
+
+      // Ensure schedule exists for the current month
+      const exists = data.schedules?.some(s => s.year === viewYear && s.month === viewMonth);
+      if (!exists) {
+        await createSchedule(viewYear, viewMonth);
       }
-    };
-    loadSchedules();
-  }, []);
+
+      await refreshSchedule();
+    } catch (err) {
+      console.error("Failed to initialize schedule:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  init();
+}, []);
+
 
   useEffect(() => {
     function computeSize() {
@@ -384,7 +408,14 @@ export default function ManagerScheduleEditor() {
               </div>
 
               <div style={styles.buttonContainer}>
-                <button onClick={() => canEdit && setShowShiftEditor(true)}
+                <button onClick={async () => {
+                      if (!canEdit) return;
+
+                      // ensure schedule exists for current view
+                      await ensureScheduleExists(viewYear, viewMonth);
+
+                      setShowShiftEditor(true);
+                    }}
                         style={{ padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: canEdit ? 'pointer' : 'not-allowed' }}
                         disabled={!canEdit}
                 >Add Shift</button>

@@ -98,8 +98,11 @@ export default function CreateBusiness() {
 
     setSubmitting(true);
     try {
-      await authenticatedRequest("/api/business", { method:"POST", body: payloadForCreate() });
-      navigate("/");
+      const res = await authenticatedRequest("/api/business", { method:"POST", body: payloadForCreate() });
+      if (res?.JWT){
+        saveToken(res.JWT)
+        }
+      navigate("/manager-home");
     } catch (err) {
       setError(err?.message || "Something went wrong.");
     } finally {

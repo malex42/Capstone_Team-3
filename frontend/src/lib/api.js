@@ -28,19 +28,19 @@ export async function request(path, { method = 'GET', body, headers } = {}) {
 }
 
 export function saveToken(jwt) {
-  try { localStorage.setItem('JWT', jwt); } catch {}
+  try { sessionStorage.setItem('JWT', jwt); } catch {}
 }
 
 export function getToken() {
-  try { return localStorage.getItem('JWT'); } catch { return null; }
+  try { return sessionStorage.getItem('JWT'); } catch { return null; }
 }
 
 export function saveRefreshToken(jwt) {
-  try { localStorage.setItem('refreshJWT', jwt); } catch {}
+  try { sessionStorage.setItem('refreshJWT', jwt); } catch {}
 }
 
 export function getRefreshToken() {
-  try { return localStorage.getItem('refreshJWT'); } catch { return null; }
+  try { return sessionStorage.getItem('refreshJWT'); } catch { return null; }
 }
 
 export function addCodeToToken(code) {
@@ -107,6 +107,7 @@ export async function authenticatedRequest(path, opts = {}) {
     // Server online
     connectivity.goOnline();
 
+    // Handle 401/400: try refresh
     if ((response.status === 401 || response.status === 400) && refreshToken) {
       const refreshResponse = await fetch('/refresh', {
         method: 'POST',
@@ -130,22 +131,35 @@ export async function authenticatedRequest(path, opts = {}) {
       connectivity.goOnline();
     }
 
-    if (!response.ok && response.status >= 500) {
-      // Server offline
-      connectivity.goOffline();
-      return { offline: true };
+    // Detect offline / proxy failure from Vite
+    if (!response.ok) {
+      // Vite proxy returns 502 with JSON error
+      if (response.status === 502) {
+        connectivity.goOffline();
+        return { offline: true, error: 'Backend unreachable' };
+      }
 
+      // Other server errors
+      if (response.status >= 500) {
+        connectivity.goOffline();
+        return { offline: true };
+      }
     }
 
     return response;
-  } catch (err) {
-    // Fetch/network failure
-    connectivity.goOffline();
-    return { offline: true };
 
+  } catch (err) {
+    // Only mark offline for real network errors
+    if (err instanceof TypeError && err.message === 'Failed to fetch') {
+      connectivity.goOffline();
+      return { offline: true };
+    }
+
+    // rethrow
     throw err;
   }
 }
+
 
 //export async function authenticatedRequest(path, opts = {}) {
 //  let token = getToken(); // access token

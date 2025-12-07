@@ -37,6 +37,10 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
         new_access_token = create_access_token(identity=identity)
         return jsonify({"msg": "token refreshed", "JWT": new_access_token}), 200
 
+    @app.route('/api/ping')
+    def ping():
+        return jsonify({"status": "ok"}), 200
+
     app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
     app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
 
