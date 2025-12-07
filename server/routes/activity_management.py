@@ -94,8 +94,6 @@ def employee_activities_endpoint():
         activities = g.activity_handler.get_employee_activities(business_code=business_code)
         activities = jsonify_keys(original=activities, keys_to_convert=['_id'])
 
-        print(activities)
-
         if activities:
             return jsonify({"message": "success", "activities": activities}), 200
 

@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { ConnectivityProvider } from '@/contexts/connectivityContext.jsx';
+
 import Login from './pages/login.jsx'
 import SignupPage from './pages/signup.jsx'
 import CreateBusiness from './pages/createBusiness.jsx'
@@ -7,13 +9,18 @@ import ManagerHome from './pages/managerHome.jsx'
 import Monitoring from './pages/monitoring.jsx'
 import ManagerScheduleEditor from './pages/schedTools.jsx'
 import PostShift from './pages/postShift.jsx'
-import TakeShift from './pages/takeShift.jsx'   // <-- add this import
+import TakeShift from './pages/takeShift.jsx'
 import TimeSheet from './pages/timesheet.jsx'
 import Alert from './pages/logActivity.jsx'
+import OfflineBanner from '@/components/OfflineBanner.jsx';
 import './App.css'
 
 function App() {
   return (
+
+  <ConnectivityProvider>
+
+   <OfflineBanner />
     <Router>
       <Routes>
         {/* Default route */}
@@ -54,6 +61,9 @@ function App() {
 
       </Routes>
     </Router>
+
+   </ConnectivityProvider>
+
   )
 }
 

@@ -1,4 +1,5 @@
 import { jwtDecode } from 'jwt-decode'
+import { connectivity } from '@/contexts/connectivitySingleton.js';
 
 
 export async function request(path, { method = 'GET', body, headers } = {}) {
@@ -91,22 +92,32 @@ export function loginUser({ username, password }) {
 
 // For any authed call
 export async function authenticatedRequest(path, opts = {}) {
-  let token = getToken(); // access token
-  let refreshToken = getRefreshToken(); // refresh token
+  let token = getToken();
+  let refreshToken = getRefreshToken();
 
-  let response = await request(path, {
-    ...opts,
-    headers: { Authorization: token ? `Bearer ${token}` : undefined, ...(opts.headers || {}) },
-  });
-
-  if (response.status === 401 && refreshToken) {
-    const refreshResponse = await fetch('/refresh', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${refreshToken}` },
+  try {
+    let response = await request(path, {
+      ...opts,
+      headers: {
+        Authorization: token ? `Bearer ${token}` : undefined,
+        ...(opts.headers || {}),
+      },
     });
 
+    // Server online
+    connectivity.goOnline();
 
-    if (refreshResponse.ok) {
+    if (response.status === 401 && refreshToken) {
+      const refreshResponse = await fetch('/refresh', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      });
+
+      if (!refreshResponse.ok) {
+        window.location.href = '/';
+        return { redirected: true };
+      }
+
       const data = await refreshResponse.json();
       token = data.JWT;
       setToken(token);
@@ -115,13 +126,59 @@ export async function authenticatedRequest(path, opts = {}) {
         ...opts,
         headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) },
       });
-    } else {
-      window.location.href = '/';
-      return { redirected: true }; }
-  }
 
-  return response;
+      connectivity.goOnline();
+    }
+
+    if (!response.ok && response.status >= 500) {
+      // Server offline
+      connectivity.goOffline();
+      return { offline: true };
+
+    }
+
+    return response;
+  } catch (err) {
+    // Fetch/network failure
+    connectivity.goOffline();
+    return { offline: true };
+
+    throw err;
+  }
 }
+
+//export async function authenticatedRequest(path, opts = {}) {
+//  let token = getToken(); // access token
+//  let refreshToken = getRefreshToken(); // refresh token
+//
+//  let response = await request(path, {
+//    ...opts,
+//    headers: { Authorization: token ? `Bearer ${token}` : undefined, ...(opts.headers || {}) },
+//  });
+//
+//  if (response.status === 401 && refreshToken) {
+//    const refreshResponse = await fetch('/refresh', {
+//      method: 'POST',
+//      headers: { Authorization: `Bearer ${refreshToken}` },
+//    });
+//
+//
+//    if (refreshResponse.ok) {
+//      const data = await refreshResponse.json();
+//      token = data.JWT;
+//      setToken(token);
+//
+//      response = await request(path, {
+//        ...opts,
+//        headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) },
+//      });
+//    } else {
+//      window.location.href = '/';
+//      return { redirected: true }; }
+//  }
+//
+//  return response;
+//}
 
 
 

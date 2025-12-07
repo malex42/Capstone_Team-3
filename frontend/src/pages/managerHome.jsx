@@ -13,6 +13,7 @@ import enUS from 'date-fns/locale/en-US';
 import { getHomePage, getBusinessCode } from '@/lib/api';
 import { useNavigate } from "react-router-dom";
 
+import { connectivity } from '@/contexts/connectivitySingleton';
 
 
 const locales = { 'en-US': enUS };
@@ -21,10 +22,40 @@ const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales
 export default function ManagerHome() {
 
   const navigate = useNavigate();
-  const [businessName, setBusinessName] = useState('-');
   const businessCode = getBusinessCode();
-  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+
+
+
+    const [businessName, setBusinessName] = useState(() => {
+      try {
+        const stored = window.localStorage.getItem('businessName');
+        return stored || '-';
+      } catch (e) {
+        return '-';
+      }
+    });
+
+function parseStoredEvents(stored) {
+  if (!stored) return [];
+  try {
+    const arr = JSON.parse(stored);
+    return arr.map(e => ({
+      ...e,
+      start: new Date(e.start),
+      end: new Date(e.end),
+    }));
+  } catch (err) {
+    console.warn('Failed to parse stored events', err);
+    return [];
+  }
+}
+
+  const [events, setEvents] = useState(() => {
+    const stored = window.localStorage.getItem('events');
+    return parseStoredEvents(stored);
+});
+
 
   // keep calendar locked to today's month
   const today = useMemo(() => new Date(), []);
@@ -40,7 +71,6 @@ export default function ManagerHome() {
   const [calendarHeight, setCalendarHeight] = useState(520);
 
   useEffect(() => {
-    // load code fallback
     try {
       const stored = window.localStorage.getItem('businessCode');
       if (stored) setBusinessCode(stored);
@@ -89,10 +119,13 @@ useEffect(() => {
         navigate('/');
         return;
       }
+      if (data?.offline) return;
 
+      if (!data?.shifts || !Array.isArray(data.shifts)) {
+        console.warn('No shifts returned, keeping last state.');
+        return;
+      }
       if (!mounted) return;
-
-      setBusinessName(data.business_name || '');
 
       const mapped = (data.shifts || []).map((s, idx) => {
         let start = s.start ? new Date(s.start) : new Date();
@@ -105,14 +138,18 @@ useEffect(() => {
 
         return {
           id: s._id || idx,
-          title: `${String(s.employee_name ?? '').slice(0, 10).toUpperCase()}: ${String(formattedStart)} - ${String(formattedStart)}`,
+          title: `${String(s.employee_name ?? '').slice(0, 10).toUpperCase()}: ${String(formattedStart)} - ${String(formattedEnd)}`,
           start,
           end,
           allDay: false,
         };
       });
 
+      setBusinessName(data.business_name ?? businessName);
       setEvents(mapped);
+
+      window.localStorage.setItem('events', JSON.stringify(mapped));
+      window.localStorage.setItem('businessName', data.business_name || '');
 
     } catch (err) {
       console.error('Failed to fetch home page:', err);

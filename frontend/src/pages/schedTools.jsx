@@ -12,6 +12,8 @@ import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
 import { getHomePage, getBusinessCode, authenticatedRequest } from '@/lib/api';
 import { useNavigate } from "react-router-dom";
+import { useConnectivity } from '@/contexts/ConnectivityContext';
+
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
@@ -35,8 +37,11 @@ export default function ManagerScheduleEditor() {
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1);
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [schedules, setSchedules] = useState([]);
+  const { isOffline } = useConnectivity();
 
   const canEditShifts = Boolean(scheduleId);
+  const canEdit = canEditShifts && !isOffline;
+
 
   const HEADER_HEIGHT = 84;
   const LEFT_NAV_WIDTH = 260;
@@ -84,13 +89,22 @@ export default function ManagerScheduleEditor() {
   });
 
   const exitShiftEditor = async () => {
-    await refreshSchedule();
+    try {
+    if (!isOffline) {
+      await refreshSchedule();
+    } else {
+      console.warn("Offline: skipping schedule refresh");
+    }
+  } catch (err) {
+    console.error("Failed to refresh schedule:", err);
+  } finally {
     setEditingShift(null);
     setShowShiftEditor(false);
     setShiftStart('');
     setShiftEnd('');
     setSelectedEmployee('');
-  };
+  }
+};
 
   const createSchedule = async (year, month) => {
     await authenticatedRequest("/api/manager/schedules/new", {
@@ -168,7 +182,11 @@ export default function ManagerScheduleEditor() {
     async function fetchEmployees() {
       try {
         const data = await authenticatedRequest('/api/manager/business/employees');
-        setEmployees(data || []);
+        if (!Array.isArray(data)) {
+          console.warn('Employees response invalid, keeping previous state.');
+          return;
+        }
+        setEmployees(data);
       } catch (err) {
         console.error('Failed to load employees:', err);
       }
@@ -276,7 +294,7 @@ export default function ManagerScheduleEditor() {
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                 <button
                   onClick={async () => {
-                    if (!canEditShifts) return;
+                    if (!canEdit) return;
                     try {
                       const shift = {
                         employee_id: selectedEmployee,
@@ -290,24 +308,48 @@ export default function ManagerScheduleEditor() {
                       await exitShiftEditor();
                     } catch (err) { console.error(err); }
                   }}
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: canEditShifts ? 'pointer' : 'not-allowed' }}
-                  disabled={!canEditShifts}
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: canEdit ? 'pointer' : 'not-allowed' }}
+                  disabled={!canEdit}
                 >Save</button>
 
                 <button
                   onClick={async () => {
-                    if (!isEditing) return exitShiftEditor();
-                    try {
-                      await authenticatedRequest('/api/manager/schedules/delete_shift', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: { schedule_id: scheduleId, shift_id: editingShift._id },
-                      });
+                    if (!isEditing) {
                       await exitShiftEditor();
-                    } catch (err) { console.error(err); }
+                      return;
+                    }
+
+                    try {
+                      // Only attempt deletion if online
+                      if (!isOffline) {
+                        await authenticatedRequest('/api/manager/schedules/delete_shift', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: { schedule_id: scheduleId, shift_id: editingShift._id },
+                        });
+                      } else {
+                        console.warn('Offline: skip API deletion');
+                      }
+                    } catch (err) {
+                      console.error('Failed to delete shift:', err);
+                    } finally {
+                      // Always exit the editor, regardless of success/failure
+                      await exitShiftEditor();
+                    }
                   }}
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: '#dc3545', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}
-                >Delete</button>
+                  style={{
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    background: '#dc3545',
+                    color: '#fff',
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Delete
+                </button>
               </div>
               </div>
             </div>
@@ -325,10 +367,10 @@ export default function ManagerScheduleEditor() {
                     <div key={e.id} style={{ padding: '6px 8px', borderRadius: 6, background: '#007bff', color: '#fff', marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span>{e.title}</span>
                       <button
-                        style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 4, padding: '2px 6px', color: '#fff', cursor: canEditShifts ? 'pointer' : 'not-allowed' }}
-                        disabled={!canEditShifts}
+                        style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 4, padding: '2px 6px', color: '#fff', cursor: canEdit ? 'pointer' : 'not-allowed' }}
+                        disabled={!canEdit}
                         onClick={() => {
-                          if (!canEditShifts) return;
+                          if (!canEdit) return;
                           setShowShiftEditor(true);
                           setEditingShift(e);
                           setSelectedEmployee(e.employee_id);
@@ -342,9 +384,9 @@ export default function ManagerScheduleEditor() {
               </div>
 
               <div style={styles.buttonContainer}>
-                <button onClick={() => canEditShifts && setShowShiftEditor(true)}
-                        style={{ padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: canEditShifts ? 'pointer' : 'not-allowed' }}
-                        disabled={!canEditShifts}
+                <button onClick={() => canEdit && setShowShiftEditor(true)}
+                        style={{ padding: '10px 12px', borderRadius: 8, background: '#28a745', color: '#fff', fontWeight: 600, border: 'none', cursor: canEdit ? 'pointer' : 'not-allowed' }}
+                        disabled={!canEdit}
                 >Add Shift</button>
               </div>
             </>
