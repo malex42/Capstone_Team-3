@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager
 from unittest.mock import Mock
 from datetime import timedelta
 
+from handlers.activity_handler import ActivityHandler
 from handlers.schedule_handler import ScheduleHandler
 from routes.routes import setup_routes
 from handlers.account_handler import AccountHandler
@@ -26,13 +27,14 @@ def mock_handlers():
     account_handler = Mock(spec=AccountHandler)
     business_handler = Mock(spec=BusinessHandler)
     schedule_handler = Mock(spec=ScheduleHandler)
-    return account_handler, business_handler, schedule_handler
+    activity_handler = Mock(spec=ActivityHandler)
+    return account_handler, business_handler, schedule_handler, activity_handler
 
 
 def test_all_routes_registered(app, mock_handlers):
     """Test that all routes are registered"""
-    account_handler, business_handler, schedule_handler = mock_handlers
-    setup_routes(app, account_handler, business_handler, schedule_handler)
+    account_handler, business_handler, schedule_handler, activity_handler = mock_handlers
+    setup_routes(app, account_handler, business_handler, schedule_handler, activity_handler)
 
     routes = [rule.rule for rule in app.url_map.iter_rules()]
 
@@ -44,8 +46,8 @@ def test_all_routes_registered(app, mock_handlers):
 
 def test_routes_use_post_method(app, mock_handlers):
     """Test that all routes accept POST method"""
-    account_handler, business_handler, schedule_handler = mock_handlers
-    setup_routes(app, account_handler, business_handler, schedule_handler)
+    account_handler, business_handler, schedule_handler, activity_handler = mock_handlers
+    setup_routes(app, account_handler, business_handler, schedule_handler, activity_handler)
 
     api_routes = [
         '/api/auth/register',

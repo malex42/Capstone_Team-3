@@ -14,6 +14,10 @@
 This repository contains the Good Work project, a schedule management tool.
 
 [Development Checkpoint](https://drive.google.com/file/d/1QzeCOtltIzfKdbi686uevLsWuRAjR_bg/view?usp=drive_link)
+[Final Submission](https://drive.google.com/drive/folders/16SpG_HfQ2VwEVbxOs9kI_zpAsMVuDo7t?usp=sharing)
+
+[GitHub Repository](https://github.com/malex42/Capstone_Team-3)
+[Project Board](https://github.com/users/malex42/projects/4)
 
 Follow the instructions below to set up and run the application.
 
