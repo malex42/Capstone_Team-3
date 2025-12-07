@@ -32,10 +32,12 @@ class TestAccountHandler:
     def test_create_user_success(self, account_handler):
         """Test creating a user successfully"""
         result = account_handler.create_user(
-            "test_user",
-            "Password123",
-            Role.EMPLOYEE.value,
-            None
+            first_name="Test",
+            last_name="User",
+            input_username="test_user",
+            input_password="Password123",
+            role=Role.EMPLOYEE.value,
+            code=None
         )
 
         assert result is True
@@ -44,7 +46,14 @@ class TestAccountHandler:
 
     def test_create_user_appears_in_database(self, account_handler):
         """Test creating a user appears in database"""
-        account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
+        account_handler.create_user(
+            first_name="Test",
+            last_name="User",
+            input_username="test_user",
+            input_password="Password123",
+            role=Role.EMPLOYEE.value,
+            code=None
+        )
 
         user = account_handler.find_user_by_name("test_user")
 
@@ -53,19 +62,47 @@ class TestAccountHandler:
 
     def test_create_duplicate_user_fails(self, account_handler):
         """Test creating a duplicate user fails"""
-        account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
+        account_handler.create_user(
+            first_name="Test",
+            last_name="User",
+            input_username="test_user",
+            input_password="Password123",
+            role=Role.EMPLOYEE.value,
+            code=None
+        )
 
         with pytest.raises(UserAlreadyExistsError):
-            account_handler.create_user("test_user", "Password456", Role.EMPLOYEE.value, None)
+            account_handler.create_user(
+                first_name="Test",
+                last_name="User",
+                input_username="test_user",
+                input_password="Password456",
+                role=Role.EMPLOYEE.value,
+                code=None
+            )
 
     def test_create_user_weak_password_fails(self, account_handler):
         """Test creating a user fails with weak password"""
         with pytest.raises(PasswordFormatError):
-            account_handler.create_user("test_user", "weak", Role.EMPLOYEE.value, None)
+            account_handler.create_user(
+                first_name="Test",
+                last_name="User",
+                input_username="test_user",
+                input_password="weak",
+                role=Role.EMPLOYEE.value,
+                code=None
+            )
 
     def test_login_with_correct_password(self, account_handler):
         """Test login with correct password"""
-        account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
+        account_handler.create_user(
+            first_name="Test",
+            last_name="User",
+            input_username="test_user",
+            input_password="Password123",
+            role=Role.EMPLOYEE.value,
+            code=None
+        )
 
         result = account_handler.validate_login("test_user", "Password123")
 
@@ -73,7 +110,14 @@ class TestAccountHandler:
 
     def test_login_with_wrong_password(self, account_handler):
         """Test login with wrong password"""
-        account_handler.create_user("test_user", "Password123", Role.EMPLOYEE.value, None)
+        account_handler.create_user(
+            first_name="Test",
+            last_name="User",
+            input_username="test_user",
+            input_password="Password123",
+            role=Role.EMPLOYEE.value,
+            code=None
+        )
 
         result = account_handler.validate_login("test_user", "Password456")
 
@@ -87,7 +131,14 @@ class TestAccountHandler:
 
     def test_get_user_role(self, account_handler):
         """Test getting user role"""
-        account_handler.create_user("manager1", "Password123", Role.MANAGER.value, None)
+        account_handler.create_user(
+            first_name="Manager",
+            last_name="One",
+            input_username="manager1",
+            input_password="Password123",
+            role=Role.MANAGER.value,
+            code=None
+        )
 
         role = account_handler.get_user_role("manager1")
 
@@ -96,13 +147,27 @@ class TestAccountHandler:
     def test_password_is_hashed(self, account_handler):
         """Test passwords not stored in plain text"""
         password = "Password123"
-        account_handler.create_user("test_user", password, Role.EMPLOYEE.value, None)
+        account_handler.create_user(
+            first_name="Test",
+            last_name="User",
+            input_username="test_user",
+            input_password=password,
+            role=Role.EMPLOYEE.value,
+            code=None
+        )
         user = account_handler.find_user_by_name("test_user")
         assert user['password'] != password
 
     def test_user_has_business_code(self, account_handler):
         """Test user has business code"""
-        account_handler.create_user("employee1", "Password123", Role.EMPLOYEE.value, "BIZ123")
+        account_handler.create_user(
+            first_name="Employee",
+            last_name="One",
+            input_username="employee1",
+            input_password="Password123",
+            role=Role.EMPLOYEE.value,
+            code="BIZ123"
+        )
 
         user = account_handler.find_user_by_name("employee1")
 

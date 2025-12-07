@@ -50,11 +50,11 @@ def test_insert_user_employee():
     handler = AccountHandler(db_handler, pw_handler)
     
     # Test employee insertion
-    handler._insert_user("testuser", "hashed_pass", "employee", None)
+    handler._insert_user("test_user", "hashed_pass", "employee", None)
     
     collection.insert_one.assert_called_once()
     inserted = collection.insert_one.call_args[0][0]
-    assert inserted["username"] == "testuser"
+    assert inserted["username"] == "test_user"
     assert inserted["password"] == "hashed_pass"
     assert inserted["role"] == "employee"
 
@@ -101,7 +101,7 @@ def test_create_user_success(monkeypatch):
     monkeypatch.setattr("handlers.validation_handler.ValidationHandler.validate_user_input", lambda x: True)
 
     handler = AccountHandler(db_handler, pw_handler)
-    result = handler.create_user("testuser", "ValidPass1", "employee", None)
+    result = handler.create_user("test_user", "ValidPass1", "employee", None)
 
     assert result is True
     collection.insert_one.assert_called_once()
