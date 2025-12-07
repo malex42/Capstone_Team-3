@@ -415,12 +415,11 @@ export default function Monitoring() {
           <div style={styles.contentCard}>
             <div style={styles.contentTitle}>Monitoring</div>
             <div style={styles.contentSubtitle}>
-              Overview of business activity, performance, and alerts.
+              Employee Activity Overview
             </div>
 
             <div style={{ fontSize: 13, color: '#777', marginTop: 4 }}>
-              Showing most recent shifts first. Each card represents one shift with its
-              clock-in and clock-out activity.
+              Showing most recent shifts first.
             </div>
 
             <div style={styles.activityList}>
