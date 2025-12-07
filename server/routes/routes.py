@@ -40,7 +40,7 @@ def setup_routes(app, account_handler: AccountHandler, business_handler: Busines
     app.add_url_rule('/api/auth/register', view_func=create_user_endpoint, methods=['POST'])
     app.add_url_rule('/api/auth/login', view_func=login_endpoint, methods=['POST'])
 
-    app.add_url_rule('/api/manager/business', view_func=create_business_endpoint, methods=['POST'])
+    app.add_url_rule('/api/business', view_func=create_business_endpoint, methods=['POST'])
     app.add_url_rule('/api/link_business', view_func=link_business_endpoint, methods=['POST'])
     app.add_url_rule('/api/manager/business/employees', view_func=get_all_employees_endpoint, methods=['GET'])
 
