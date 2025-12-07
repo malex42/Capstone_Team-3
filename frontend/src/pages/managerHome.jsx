@@ -13,6 +13,7 @@ import enUS from 'date-fns/locale/en-US';
 import { getHomePage, getBusinessCode } from '@/lib/api';
 import { useNavigate } from "react-router-dom";
 
+import { connectivity } from '@/contexts/connectivitySingleton';
 
 
 const locales = { 'en-US': enUS };
@@ -21,10 +22,38 @@ const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales
 export default function ManagerHome() {
 
   const navigate = useNavigate();
-  const [businessName, setBusinessName] = useState('-');
   const businessCode = getBusinessCode();
-  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+
+    const [businessName, setBusinessName] = useState(() => {
+      try {
+        const stored = window.localStorage.getItem('businessName');
+        return stored || '-';
+      } catch (e) {
+        return '-';
+      }
+    });
+
+function parseStoredEvents(stored) {
+  if (!stored) return [];
+  try {
+    const arr = JSON.parse(stored);
+    return arr.map(e => ({
+      ...e,
+      start: new Date(e.start),
+      end: new Date(e.end),
+    }));
+  } catch (err) {
+    console.warn('Failed to parse stored events', err);
+    return [];
+  }
+}
+
+  const [events, setEvents] = useState(() => {
+    const stored = window.localStorage.getItem('events');
+    return parseStoredEvents(stored);
+});
+
 
   // keep calendar locked to today's month
   const today = useMemo(() => new Date(), []);
@@ -40,7 +69,6 @@ export default function ManagerHome() {
   const [calendarHeight, setCalendarHeight] = useState(520);
 
   useEffect(() => {
-    // load code fallback
     try {
       const stored = window.localStorage.getItem('businessCode');
       if (stored) setBusinessCode(stored);
@@ -85,10 +113,13 @@ useEffect(() => {
   async function fetchHome() {
     try {
       const data = await getHomePage();
+      if (data?.redirected) {
+        navigate('/');
+        return;
+      }
+      if (data?.offline) return;
 
       if (!mounted) return;
-
-      setBusinessName(data.business_name || '');
 
       const mapped = (data.shifts || []).map((s, idx) => {
         let start = s.start ? new Date(s.start) : new Date();
@@ -101,14 +132,18 @@ useEffect(() => {
 
         return {
           id: s._id || idx,
-          title: `${String(s.employee_name ?? '').slice(0, 10).toUpperCase()}: ${String(formattedStart)} - ${String(formattedStart)}`,
+          title: `${String(s.employee_name ?? '').slice(0, 10).toUpperCase()}: ${String(formattedStart)} - ${String(formattedEnd)}`,
           start,
           end,
           allDay: false,
         };
       });
 
+      setBusinessName(data.business_name ?? businessName);
       setEvents(mapped);
+
+      window.localStorage.setItem('events', JSON.stringify(mapped));
+      window.localStorage.setItem('businessName', data.business_name || '');
 
     } catch (err) {
       console.error('Failed to fetch home page:', err);
@@ -263,12 +298,6 @@ useEffect(() => {
       <div style={styles.mainLayout}>
         <aside style={styles.leftNav}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ ...styles.navItem }}>
-              <img style={styles.navIcon} src="/img/logActivityIcon.png" alt="Log" />
-              <div>
-                <div style={{ fontWeight: 700, color: '#666' }}>Log Activity</div>
-              </div>
-            </div>
 
             <div
                 style={{ ...styles.navItem }}
@@ -280,14 +309,17 @@ useEffect(() => {
               </div>
             </div>
 
-            <div style={{ ...styles.navItem }}>
+            <div style={{ ...styles.navItem }}
+              onClick={() => navigate("/monitoring")}
+            >
               <img style={styles.navIcon} src="/img/monitorActivityIcon.png" alt="Monitor" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666'  }}>Monitor</div>
               </div>
             </div>
 
-            <div style={{ ...styles.navItem }}>
+            <div style={{ ...styles.navItem }}
+            onClick={() => navigate("/alert")}>
               <img style={styles.navIcon} src="/img/alertIcon.png" alt="Alerts" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666'  }}>Alerts</div>
@@ -301,7 +333,8 @@ useEffect(() => {
               </div>
             </div>
 
-            <div style={{ ...styles.navItem }}>
+            <div style={{ ...styles.navItem }}
+            onClick={() => navigate("/timeSheet")}>
               <img style={styles.navIcon} src="/img/myPayIcon.png" alt="Pay" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666'  }}>Payroll</div>

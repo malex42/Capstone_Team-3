@@ -11,6 +11,7 @@ import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
 import { getHomePage, getBusinessCode, getEmployeeID, authenticatedRequest, saveToken } from '@/lib/api';
+    import { useNavigate } from 'react-router-dom';
 
 
 const locales = { 'en-US': enUS };
@@ -22,6 +23,7 @@ export default function EmployeeHome() {
   const [error, setError] = useState('');
   const [businessCode, setBusinessCode] = useState(getBusinessCode() || '');
   const [businessCodeInput, setBusinessCodeInput] = useState('');
+  const navigate = useNavigate();
 
   const employeeID = getEmployeeID();
   const [events, setEvents] = useState([]);
@@ -61,7 +63,7 @@ export default function EmployeeHome() {
       setBusinessCode(businessCodeInput.trim());
       localStorage.setItem("businessCode", businessCode.trim());
 
-      navigate("/manager-home");
+      navigate("/employee-home");
     } catch (err) {
       setError(err?.message || "Failed to link business.");
     } finally {
@@ -295,7 +297,12 @@ useEffect(() => {
       <div style={styles.mainLayout}>
         <aside style={styles.leftNav}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ ...styles.navItem }}>
+
+
+            <div
+            style={{ ...styles.navItem, cursor: "pointer" }}
+              onClick={() => navigate("/log-activity")}
+            >
               <img style={styles.navIcon} src="/img/logActivityIcon.png" alt="Log" />
               <div>
                 <div style={{ fontWeight: 700, color: '#666' }}>Log Activity</div>
@@ -309,17 +316,23 @@ useEffect(() => {
               </div>
             </div>
 
-            <div style={{ ...styles.navItem }}>
-              <img style={styles.navIcon} src="/img/postShitfIcon.png" alt="Post Shift" />
+            <div
+              style={{ ...styles.navItem, cursor: "pointer" }}
+              onClick={() => navigate("/post-shift")}
+            >
+              <img style={styles.navIcon} src="/img/arrowIcon.png" alt="Post Shift" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666'  }}>Post Shifts</div>
+                <div style={{ fontWeight: 700, color: "#666" }}>Post Shifts</div>
               </div>
             </div>
 
-            <div style={{ ...styles.navItem }}>
+            <div
+              style={{ ...styles.navItem, cursor: "pointer" }}
+              onClick={() => navigate("/take-shift")}
+            >
               <img style={styles.navIcon} src="/img/takeShiftIcon.png" alt="Take Shift" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666'  }}>Take Shifts</div>
+                <div style={{ fontWeight: 700, color: "#666" }}>Take Shifts</div>
               </div>
             </div>
 
@@ -333,7 +346,9 @@ useEffect(() => {
             <div style={{ ...styles.navItem }}>
               <img style={styles.navIcon} src="/img/myPayIcon.png" alt="Pay" />
               <div>
-                <div style={{ fontWeight: 700, color: '#666'  }}>My pay</div>
+                <div style={{ fontWeight: 700, color: '#666'  }}
+                     onClick={() => navigate("/timeSheet")}>My pay</div>
+                
               </div>
             </div>
           </div>

@@ -52,7 +52,7 @@ export default function CreateBusiness() {
   const onMerChange = (i, field, value) =>
     setHours(prev => {
       const next = [...prev];
-      next[i][field] = value;
+      next[i][field] = value; // "AM" | "PM"
       return next;
     });
 
@@ -64,12 +64,10 @@ export default function CreateBusiness() {
     for (const d of enabled) {
       if (d.open12 === "" || d.openMM === "" || d.close12 === "" || d.closeMM === "")
         return { ok:false, msg:`Please fill times for ${d.day}.` };
-
       const oh = to24(d.open12, d.openMer);
       const ch = to24(d.close12, d.closeMer);
       const om = clamp(toInt(d.openMM), 0, 59);
       const cm = clamp(toInt(d.closeMM), 0, 59);
-
       if (oh * 60 + om >= ch * 60 + cm)
         return { ok:false, msg:`Close time must be after open time on ${d.day}.` };
     }
@@ -78,6 +76,7 @@ export default function CreateBusiness() {
 
   const payloadForCreate = () => ({
     name: businessName.trim(),
+    code: businessCode.trim() || undefined,
     hours: hours.filter(d => d.enabled).map(d => {
       const oh = to24(d.open12, d.openMer);
       const ch = to24(d.close12, d.closeMer);
@@ -94,24 +93,15 @@ export default function CreateBusiness() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     const { ok, msg } = validate();
     if (!ok) { setError(msg); return; }
 
     setSubmitting(true);
     try {
-      const data = await authenticatedRequest("/api/manager/new/business", {
-        method: "POST",
-        body: payloadForCreate(),
-      });
-
-      if (data?.code) {
-        localStorage.setItem("business_code", data.code);
-      }
-      if (data?.JWT) {
-          saveToken(data.JWT)
-          }
-
+      const res = await authenticatedRequest("/api/business", { method:"POST", body: payloadForCreate() });
+      if (res?.JWT){
+        saveToken(res.JWT)
+        }
       navigate("/manager-home");
     } catch (err) {
       setError(err?.message || "Something went wrong.");
@@ -120,36 +110,7 @@ export default function CreateBusiness() {
     }
   };
 
-  // ✅ NEW: Link existing business handler
-  const handleLinkBusiness = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (!businessCode.trim()) {
-      setError("Please enter a business code to link.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const data = await authenticatedRequest("/api/link_business", {
-        method: "POST",
-        body: { code: businessCode.trim() },
-      });
-      if (data?.JWT) {
-          saveToken(data.JWT)
-          }
-      localStorage.setItem("businessCode", businessCode.trim());
-
-      navigate("/manager-home");
-    } catch (err) {
-      setError(err?.message || "Failed to link business.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // ---------- layout styles ----------
+  // ---------- layout styles (no inner scrolls) ----------
   const styles = {
     page: { background:"#fafafa", minHeight:"100vh", padding:"24px 16px" },
     bigBox: {
@@ -158,7 +119,7 @@ export default function CreateBusiness() {
     },
     grid: {
       display:"grid",
-      gridTemplateColumns:"minmax(360px, 420px) 1fr",
+      gridTemplateColumns:"minmax(360px, 420px) 1fr", // left fixed-ish, right expands
       gap:32, alignItems:"start"
     },
     logo: { width: 160, height: "auto", objectFit:"contain", display:"block", marginBottom:16 },
@@ -167,6 +128,7 @@ export default function CreateBusiness() {
     hoursCellSelect: { maxWidth:88 },
   };
 
+  // reflow grid on narrow screens
   const [isNarrow, setIsNarrow] = useState(false);
   useEffect(() => {
     const set = () => setIsNarrow(window.innerWidth < 992);
@@ -177,12 +139,14 @@ export default function CreateBusiness() {
   return (
     <main style={styles.page}>
       <form onSubmit={handleSubmit} style={styles.bigBox}>
+        {/* Two columns: left (logo + fields), right (full schedule) */}
         <div style={isNarrow ? { display:"grid", gap:24 } : styles.grid}>
-
           {/* LEFT */}
           <section>
+            {/* logo top-left */}
             <img src="/img/logo.png" alt="goodWorks" style={styles.logo} />
 
+            {/* fields under the logo */}
             <h6 style={styles.sectionTitle}>Business</h6>
 
             <div className="mb-3">
@@ -198,30 +162,13 @@ export default function CreateBusiness() {
             </div>
 
             <div className="mb-3">
-              <label className="form-label">
-                Or link an existing business
-              </label>
-
-              <div className="d-flex gap-2">
-                <input
-                  className="form-control"
-                  placeholder="Enter business code"
-                  value={businessCode}
-                  onChange={(e) => setBusinessCode(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary"
-                  onClick={handleLinkBusiness}
-                  disabled={submitting || !businessCode.trim()}
-                >
-                  {submitting ? (
-                    <><span className="spinner-border spinner-border-sm me-2" />Linking…</>
-                  ) : (
-                    "Link"
-                  )}
-                </button>
-              </div>
+              <label className="form-label">Business Code (optional)</label>
+              <input
+                className="form-control"
+                placeholder="Internal code"
+                value={businessCode}
+                onChange={(e) => setBusinessCode(e.target.value)}
+              />
             </div>
           </section>
 
@@ -229,7 +176,7 @@ export default function CreateBusiness() {
           <aside>
             <h6 style={styles.sectionTitle}>Hours of Operation</h6>
 
-            <div className="table-responsive">
+            <div className="table-responsive">{/* outer page can scroll; no inner scrollbars */}
               <table className="table table-bordered align-middle mb-0">
                 <thead className="table-light">
                   <tr>
@@ -256,6 +203,7 @@ export default function CreateBusiness() {
                         </div>
                       </td>
 
+                      {/* OPEN */}
                       <td>
                         <div className="d-flex align-items-center gap-2 justify-content-center">
                           <input
@@ -286,6 +234,7 @@ export default function CreateBusiness() {
                         </div>
                       </td>
 
+                      {/* CLOSE */}
                       <td>
                         <div className="d-flex align-items-center gap-2 justify-content-center">
                           <input
@@ -323,6 +272,7 @@ export default function CreateBusiness() {
           </aside>
         </div>
 
+        {/* errors + submit */}
         {error && <div className="alert alert-danger mt-3">{error}</div>}
 
         <div className="text-end mt-3">
@@ -331,11 +281,7 @@ export default function CreateBusiness() {
             className="btn btn-primary px-4"
             disabled={disabledSubmit || submitting}
           >
-            {submitting ? (
-              <><span className="spinner-border spinner-border-sm me-2" />Saving…</>
-            ) : (
-              "Create"
-            )}
+            {submitting ? (<><span className="spinner-border spinner-border-sm me-2" />Saving…</>) : "Create"}
           </button>
         </div>
       </form>

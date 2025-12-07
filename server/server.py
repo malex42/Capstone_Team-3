@@ -5,6 +5,7 @@ from flask_cors import CORS
 
 from configurations.config_manager import ConfigurationManager
 from handlers.account_handler import AccountHandler
+from handlers.activity_handler import ActivityHandler
 from handlers.business_handler import BusinessHandler
 from handlers.db_handler import DatabaseHandler
 from handlers.password_handler import PasswordHandler
@@ -20,8 +21,12 @@ class Server:
         self.acct_handler = AccountHandler(db_handler=self.db_handler, pw_handler=self.pw_handler)
         self.business_handler = BusinessHandler(db_handler=self.db_handler)
         self.schedule_handler = ScheduleHandler(db_handler=self.db_handler)
+        self.activity_handler = ActivityHandler(db_handler=self.db_handler)
 
         self.app = Flask(__name__)
+
+        # Initialize JWT
+        jwt = JWTManager(self.app)
 
         # Enable CORS
         CORS(app=self.app)
@@ -29,49 +34,14 @@ class Server:
         # Assign config variables
         self.app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
         self.app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=15)
+        self.app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+        self.app.config["JWT_HEADER_NAME"] = "Authorization"
+        self.app.config["JWT_HEADER_TYPE"] = "Bearer"
         self.host = config.SERVER_HOST
         self.port = config.SERVER_PORT
 
-        # Initialize the JWTManager with the Flask app for token management
-        jwt = JWTManager(self.app)
-
-        @jwt.expired_token_loader
-        def expired_token_callback(jwt_header, jwt_payload):  # noqa: ARG001
-            return jsonify({
-                "message": "Token has expired",
-                "error": "token expired"
-            }), 401
-
-        @self.app.after_request
-        def refresh_expiring_jwts(response):
-            try:
-                exp_timestamp = get_jwt()["exp"]
-                now = datetime.now(timezone.utc)
-                target_timestamp = datetime.timestamp(now + timedelta(minutes=5))
-                if target_timestamp > exp_timestamp:
-                    access_token = create_access_token(identity=get_jwt_identity())
-                    set_access_cookies(response, access_token)
-                return response
-            except (RuntimeError, KeyError):
-                # Case where there is not a valid JWT. Just return the original response
-                return response
-
-        @jwt.invalid_token_loader
-        def invalid_token_callback(error):  # noqa: ARG001
-            return jsonify({
-                "message": "Invalid token",
-                "error": "invalid token"
-            }), 401
-
-        @jwt.unauthorized_loader
-        def missing_token_callback(error):  # noqa: ARG001
-            return jsonify({
-                "message": "Authorization token is missing",
-                "error": "authorization is needed"
-            }), 401
-
         # Set up all the API routes with the account handlers
-        setup_routes(self.app, self.acct_handler, self.business_handler, self.schedule_handler)
+        setup_routes(self.app, self.acct_handler, self.business_handler, self.schedule_handler, self.activity_handler)
 
     def run(self, debug: bool = False):
         # Start the Flask server with the specified host and port

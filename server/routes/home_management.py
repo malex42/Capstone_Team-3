@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from flask import request, jsonify, g
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, \
-    set_access_cookies, verify_jwt_in_request
+from flask import jsonify, g
+from flask_jwt_extended import get_jwt, verify_jwt_in_request
 
 from handlers.enums.roles import Role
 from handlers.validation_handler import is_authorized
@@ -34,10 +33,13 @@ def populate_home_endpoint():
         if business:
             # Get the schedule for the business and current month
             schedule = g.schedule_handler.get_schedule_for_month(business_code=code, month=current_month)
+            schedule_id = None if not schedule else schedule['_id']
 
             return jsonify({
                 "message": "success",
                 "business_name": business["business_name"],
+                "business_code": business["code"],
+                "schedule_id": str(schedule_id),
                 "shifts": schedule["shifts"] if schedule else ""
             }), 200
         else:

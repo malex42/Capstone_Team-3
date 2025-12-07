@@ -10,12 +10,23 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173, // frontend dev server
+    port: 5173,
     proxy: {
       '/api': {
-        target: 'https://localhost:3333', //  Flask backend
+        target: 'https://localhost:3333',
         changeOrigin: true,
-        secure: false  // allow self-signed certificates
+        secure: false,
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.error('[Proxy error]', err)
+            if (res.writeHead && !res.headersSent) {
+              res.writeHead(502, { 'Content-Type': 'application/json' })
+            }
+            if (res.end) {
+              res.end(JSON.stringify({ error: 'Backend unreachable' }))
+            }
+          })
+        },
       },
     },
   },

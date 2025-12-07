@@ -1,6 +1,6 @@
 from flask import request, jsonify, g
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, \
-    set_access_cookies
+    set_access_cookies, create_refresh_token
 from handlers.exceptions.exceptions import PasswordFormatError, UserAlreadyExistsError
 from handlers.enums.roles import Role
 from handlers.role_handler import RoleValidationHandler
@@ -14,9 +14,12 @@ def create_user_endpoint():
     data = request.get_json()
 
     # Ensure the required fields exist
-    if not data or 'username' not in data or 'password' not in data or 'role' not in data:
-        return jsonify({"message": "Username, password, and role are required"}), 400
+    if (not data or 'firstName' not in data or 'lastName' not in data or
+            'username' not in data or 'password' not in data or 'role' not in data):
+        return jsonify({"message": "Name, Username, password, and role are required"}), 400
 
+    first_name = data['firstName']
+    last_name = data['lastName']
     username = data['username']
     password = data['password']
     role = data['role']
@@ -28,10 +31,10 @@ def create_user_endpoint():
 
     try:
         # Attempt to create the user and return success message
-        if g.account_handler.create_user(username, password, role, code):
+        if g.account_handler.create_user(first_name, last_name, username, password, role, code):
             user_id = g.account_handler.find_user_by_name(username)['_id']
             access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
-            set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
+            refresh_token = create_refresh_token(identity=username)
 
             # Decode token to read expiration
             decoded = pyjwt.decode(access_token, options={"verify_signature": False})
@@ -40,6 +43,7 @@ def create_user_endpoint():
 
             return jsonify({
                 "JWT": access_token,
+                "refresh_JWT": refresh_token,
                 "message": "User created",
                 "username": username,
                 "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
@@ -73,7 +77,7 @@ def login_endpoint():
 
         # Create JWT token
         access_token = create_access_token(identity=username, additional_claims={"role": role, "code": code, "user_id": str(user_id)})
-        set_access_cookies(response=jsonify({"msg": "login successful"}), encoded_access_token=access_token)
+        refresh_token = create_refresh_token(identity=username)
 
         # Decode token to read expiration
         decoded = pyjwt.decode(access_token, options={"verify_signature": False})
@@ -81,6 +85,7 @@ def login_endpoint():
 
         return jsonify({
             "JWT": access_token,
+            "refresh_JWT": refresh_token,
             "message": "Success",
             "username": username,
             "expires_at": exp_time.strftime("%Y-%m-%d %H:%M:%S") if exp_time else None
