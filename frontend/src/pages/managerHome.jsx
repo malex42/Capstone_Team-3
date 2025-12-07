@@ -25,8 +25,6 @@ export default function ManagerHome() {
   const businessCode = getBusinessCode();
   const [loading, setLoading] = useState(true);
 
-
-
     const [businessName, setBusinessName] = useState(() => {
       try {
         const stored = window.localStorage.getItem('businessName');

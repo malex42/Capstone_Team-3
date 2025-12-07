@@ -4,6 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import '@/styles/homePage.css'
 import '@/styles/auth.css'
 import { getHomePage, getBusinessCode, authenticatedRequest } from '@/lib/api'
+import { useConnectivity } from '@/contexts/ConnectivityContext';
+
 
 const API_BASE = import.meta.env.VITE_API_URL || ''  // e.g. 'http://localhost:3333'
 const HEADER_HEIGHT = 84
@@ -11,18 +13,20 @@ const VERTICAL_PADDING = 32
 const LEFT_NAV_WIDTH = 260
 const HORIZONTAL_GAP = 24
 
-export default function ManagerHome() {
+export default function LogActivity() {
   const navigate = useNavigate()
   const [businessName, setBusinessName] = useState('-')
   const businessCode = getBusinessCode()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // new state for activity endpoint
   const [upcomingShift, setUpcomingShift] = useState(null)
   const [clockedIn, setClockedIn] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
   const [actionMessage, setActionMessage] = useState('')
+
+  const { isOffline } = useConnectivity();
+
 
 useEffect(() => {
   const fetchActivity = async () => {
@@ -47,7 +51,7 @@ useEffect(() => {
 
 const handleLogActivity = async (clockIn) => {
 
-    if (!upcomingShift) return;
+    if (!upcomingShift || isOffline) return;
 
     setActionLoading(true);
     setActionMessage('');
@@ -56,6 +60,8 @@ const handleLogActivity = async (clockIn) => {
           method: "POST",
           body: { shift_id: upcomingShift._id, clock_in: clockIn },
           });
+
+      if (data.offline) return;
 
       setClockedIn(Boolean(clockIn));
       setActionMessage(clockIn ? 'Clocked in' : 'Clocked out');
@@ -346,20 +352,20 @@ const handleLogActivity = async (clockIn) => {
                         {/* Actions */}
                         <div style={{ marginTop: 12 }}>
                           <button
-                            className="btn btn-primary me-2"
-                            disabled={actionLoading || clockedIn}
-                            onClick={() => handleLogActivity(true)}
-                          >
-                            {actionLoading && !clockedIn ? 'Processing…' : 'Clock In'}
-                          </button>
+                              className="btn btn-primary me-2"
+                              disabled={actionLoading || clockedIn || isOffline }
+                              onClick={() => handleLogActivity(true)}
+                            >
+                              {actionLoading && !clockedIn ? 'Processing…' : 'Clock In'}
+                            </button>
 
-                          <button
-                            className="btn btn-outline-secondary"
-                            disabled={actionLoading || !clockedIn}
-                            onClick={() => handleLogActivity(false)}
-                          >
-                            {actionLoading && clockedIn ? 'Processing…' : 'Clock Out'}
-                          </button>
+                            <button
+                              className="btn btn-outline-secondary"
+                              disabled={actionLoading || !clockedIn || isOffline }
+                              onClick={() => handleLogActivity(false)}
+                            >
+                              {actionLoading && clockedIn ? 'Processing…' : 'Clock Out'}
+                            </button>
                         </div>
 
                         {actionMessage && (
