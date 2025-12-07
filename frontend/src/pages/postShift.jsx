@@ -12,6 +12,8 @@ import '@/styles/homePage.css';
 import '@/styles/auth.css';
 
 import { authenticatedRequest, getEmployeeID } from "@/lib/api";
+import { useConnectivity } from '@/contexts/ConnectivityContext';
+
 
 // ---- Calendar localizer ----
 const locales = { "en-US": enUS };
@@ -74,6 +76,8 @@ export default function PostShift() {
   const [selected, setSelected] = useState([]);
   const [businessName, setBusinessName] = useState('-');
   const [businessCode, setBusinessCode] = useState('-');
+  const { isOffline } = useConnectivity();
+
 
 
   // Month lock
@@ -97,6 +101,7 @@ export default function PostShift() {
         const employeeID = getEmployeeID();
         const home = await authenticatedRequest("/api/home", { method: "GET" });
         if (!active) return;
+        if(home.offline) return;
 
         const mapped = (home.shifts || [])
           .filter(s => s.employee_id === employeeID && !s.posted)
@@ -172,6 +177,7 @@ export default function PostShift() {
         )
       );
 
+      if (results.offline) return;
       const ok = results.filter(r => r.status === "fulfilled").length;
       const fail = results.length - ok;
 
@@ -434,7 +440,7 @@ export default function PostShift() {
               <button
                 type="button"
                 onClick={postSelected}
-                disabled={selected.length === 0}
+                disabled={selected.length === 0 || isOffline}
                 style={{
                   padding: "10px 12px",
                   borderRadius: 10,
@@ -450,7 +456,7 @@ export default function PostShift() {
               <button
                 type="button"
                 onClick={clearSelected}
-                disabled={selected.length === 0}
+                disabled={selected.length === 0 || isOffline}
                 style={{
                   padding: "8px 12px",
                   borderRadius: 10,
