@@ -113,7 +113,7 @@ def delete_shift_endpoint():
     # Role enforcement check
     auth_check = is_authorized(claims, [Role.MANAGER])
     if auth_check:
-        return
+        return auth_check
 
     if not data or 'schedule_id' not in data or 'shift_id' not in data:
         return jsonify({"message": "Schedule ID and Shift ID are required"}), 400
@@ -145,7 +145,7 @@ def edit_shift_endpoint():
     # Role enforcement check
     auth_check = is_authorized(claims, [Role.MANAGER])
     if auth_check:
-        return
+        return auth_check
 
     if not data or 'schedule_id' not in data or 'shift' not in data:
         return jsonify({"message": "Schedule ID and shift object are required"}), 400
