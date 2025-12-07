@@ -107,7 +107,7 @@ export async function authenticatedRequest(path, opts = {}) {
     // Server online
     connectivity.goOnline();
 
-    if (response.status === 401 && refreshToken) {
+    if ((response.status === 401 || response.status === 400) && refreshToken) {
       const refreshResponse = await fetch('/refresh', {
         method: 'POST',
         headers: { Authorization: `Bearer ${refreshToken}` },

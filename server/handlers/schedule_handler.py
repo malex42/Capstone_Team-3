@@ -95,7 +95,13 @@ class ScheduleHandler:
         shift.update({'completed': False})
 
         # Add employee name field to the shift
-        name = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})['name']
+        user = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})
+        user = self.users_collection.find_one({"_id": ObjectId(shift['employee_id'])})
+        if user:
+            name = user.get('name') or user.get('username') or 'username'
+        else:
+            name = 'unknown'
+
         shift.update({'employee_name': name})
 
         if self._insert_shift(schedule_id=schedule_id, shift=shift):

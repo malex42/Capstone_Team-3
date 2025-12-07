@@ -13,6 +13,8 @@ import '@/styles/homePage.css';
 import '@/styles/auth.css';
 
 import { authenticatedRequest, getEmployeeID } from "@/lib/api";
+import { useConnectivity } from '@/contexts/ConnectivityContext';
+
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
@@ -42,6 +44,8 @@ export default function TakeShift() {
   const [loading, setLoading] = useState(true);
   const [businessName, setBusinessName] = useState('-');
   const [businessCode, setBusinessCode] = useState('-');
+  const { isOffline } = useConnectivity();
+
 
   const today = useMemo(() => new Date(), []);
   const LEFT_PANEL_WIDTH = 320;
@@ -58,6 +62,7 @@ export default function TakeShift() {
         // fetch homepage shifts
         const home = await authenticatedRequest("/api/home", { method: "GET" });
         if (!active) return;
+        if (home.offline) return;
 
         // employee own shifts (blue, not selectable)
         const ownShifts = (home.shifts || [])
@@ -144,6 +149,8 @@ export default function TakeShift() {
       const results = await Promise.allSettled(selected.map(s =>
         authenticatedRequest("/api/employee/take_shift", { method: "POST", body: { shift_id: s.id } })
       ));
+
+      if (results.offline) return;
       const ok = results.filter(r => r.status === "fulfilled").length;
       const fail = results.length - ok;
 
@@ -248,8 +255,8 @@ export default function TakeShift() {
               {selected.map(s => <SelectedShiftCard key={s.id} shift={s} onRemove={removeSelected} />)}
             </div>
             <div style={{ marginTop: "auto", display: "grid", gap: 8 }}>
-              <button type="button" onClick={takeSelected} disabled={!selected.length} style={{ padding: "10px 12px", borderRadius: 10, border: "none", background: selected.length ? "#198754" : "#b7dfc8", color: "#fff", fontWeight: 700, cursor: selected.length ? "pointer" : "not-allowed" }}>Take {selected.length || ""} Shift{selected.length === 1 ? "" : "s"}</button>
-              <button type="button" onClick={clearSelected} disabled={!selected.length} style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #ddd", background: "#fff", color: "#333", fontWeight: 600, cursor: selected.length ? "pointer" : "not-allowed" }}>Clear</button>
+              <button type="button" onClick={takeSelected} disabled={!selected.length | isOffline} style={{ padding: "10px 12px", borderRadius: 10, border: "none", background: selected.length ? "#198754" : "#b7dfc8", color: "#fff", fontWeight: 700, cursor: selected.length ? "pointer" : "not-allowed" }}>Take {selected.length || ""} Shift{selected.length === 1 ? "" : "s"}</button>
+              <button type="button" onClick={clearSelected} disabled={!selected.length | isOffline} style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #ddd", background: "#fff", color: "#333", fontWeight: 600, cursor: selected.length ? "pointer" : "not-allowed" }}>Clear</button>
             </div>
           </aside>
 
